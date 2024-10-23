@@ -20,3 +20,6 @@ export function getDimensionalIndices(flatIndex, colMajorShape) {
 	}
 	return indices;
 }
+export function getTotalLength(shape) {
+	return shape.reduce((s, x) => s * x);
+}

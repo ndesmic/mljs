@@ -1,4 +1,4 @@
-import { assertEquals, assertAlmostEquals } from "https://deno.land/std/assert/mod.ts";
+import { assertEquals, assertAlmostEquals } from "@std/assert";
 import { Value } from "../src/value.js";
 
 Deno.test("Value should add", () => {

@@ -1,5 +1,5 @@
 import { topologicalSort } from "./topological-sort.js";
-import { getDimensionalIndices, getFlatIndex } from "./tensor-utils.js";
+import { getDimensionalIndices, getFlatIndex, getTotalLength } from "./tensor-utils.js";
 
 const backward = Symbol("backward");
 
@@ -13,7 +13,7 @@ export class Tensor {
 	#gradient = 0;
 
 	constructor({ values, shape, children, op, label }){
-		const totalLength = shape.reduce((s, x) => s * x);
+		const totalLength = getTotalLength(shape);
 
 		this.#shape = shape;
 		if(values){
@@ -175,7 +175,7 @@ export class Tensor {
 		const result = new Tensor({
 			values,
 			shape: this.#shape,
-			children: [this],
+			children: [this, other],
 			op: `pow`
 		});
 
@@ -276,5 +276,21 @@ export class Tensor {
 	}
 	[Symbol.for("Deno.customInspect")]() {
 		return this.toString();
+	}
+
+	static filled(value, shape) {
+		return new Tensor({ values: new Float32Array(getTotalLength(shape)).fill(value), shape });
+	}
+	static getLinearSpace(start, end, steps) {
+		steps = steps - 1; //counting the spaces not the nodes
+		const length = end - start;
+		const partLength = length / steps;
+		const array = new Array(steps);
+		let current = start;
+		for (let i = 0; i <= steps; i++) {
+			array[i] = current;
+			current += partLength
+		}
+		return new Tensor({ values: array, shape: [array.length] });
 	}
 }

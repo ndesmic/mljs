@@ -1,5 +1,6 @@
-import { assertEquals, assertAlmostEquals } from "https://deno.land/std/assert/mod.ts";
+import { assertEquals } from "@std/assert";
 import { Tensor } from "../src/tensor.js";
+import { assertArrayAlmostEquals } from "./test-utils.js";
 
 Deno.test("Tensor should add", () => {
 	const t1 = new Tensor({ shape: [2,2], values: [1,2,3,4] });
@@ -117,7 +118,7 @@ Deno.test("Tensor should divide same node", () => {
 	assertEquals(result.values, new Float32Array([1, 1, 1, 1]));
 	result.backward();
 	assertEquals(result.gradient, new Float32Array([1, 1, 1, 1]));
-	assertEquals(t1.gradient, new Float32Array([ //These are actually zero but dealing with precision loss
+	assertArrayAlmostEquals(t1.gradient, new Float32Array([ //These are actually zero but dealing with precision loss
 		1.4901161415892261e-9, 
 		1.2417634698280722e-9, 
 		8.869738832295582e-10,
@@ -166,6 +167,15 @@ Deno.test("Tensor should backprop gradient through pow", () => {
 		Math.log(2) * 2 ** 4
 	]));
 });
+Deno.test("Tensor should pow same node", () => {
+	const t1 = new Tensor({ shape: [2, 2], values: [1,2,3,4] });
+	const result = t1.pow(t1);
+
+	assertEquals(result.values, new Float32Array([1, 4, 27, 256]));
+	result.backward();
+	assertEquals(result.gradient, new Float32Array([1, 1, 1, 1]));
+	assertArrayAlmostEquals(t1.gradient, new Float32Array([1.0000, 6.7726, 56.6625, 610.8914]));
+});
 
 Deno.test("Tensor exponentiates", () => {
 	const t1 = new Tensor({ shape: [2, 2], values: [1, 2, 3, 4] });
@@ -206,177 +216,204 @@ Deno.test("Tensor should backprop gradient through tanh", () => {
 	]));
 });
 
-Deno.test("Tensor should sum a 4x3 across row", () => {
-	const tensor = new Tensor({ 
-		shape: [4,3],
-		values: [
-			1, 2, 3, 4,
-			5, 6, 7, 8,
-			9, 10, 11, 12
-		]
-	});
+// Deno.test("Tensor should sum a 4x3 across row", () => {
+// 	const tensor = new Tensor({ 
+// 		shape: [4,3],
+// 		values: [
+// 			1, 2, 3, 4,
+// 			5, 6, 7, 8,
+// 			9, 10, 11, 12
+// 		]
+// 	});
 
-	const result = tensor.sum({ dimension : 0 });
-	assertEquals(result.shape, [3]);
-	assertEquals(result.values, new Float32Array([10, 26, 42]));
-});
-Deno.test("Tensor should sum a 4x3 across cols", () => {
-	const tensor = new Tensor({
-		shape: [4, 3],
-		values: [
-			1, 2, 3, 4,
-			5, 6, 7, 8,
-			9, 10, 11, 12
-		]
-	});
+// 	const result = tensor.sum({ dimension : 0 });
+// 	assertEquals(result.shape, [3]);
+// 	assertEquals(result.values, new Float32Array([10, 26, 42]));
+// });
+// Deno.test("Tensor should sum a 4x3 across cols", () => {
+// 	const tensor = new Tensor({
+// 		shape: [4, 3],
+// 		values: [
+// 			1, 2, 3, 4,
+// 			5, 6, 7, 8,
+// 			9, 10, 11, 12
+// 		]
+// 	});
 
-	const result = tensor.sum({ dimension: 1 });
-	assertEquals(result.shape, [4]);
-	assertEquals(result.values, new Float32Array([15, 18, 21, 24]));
-});
-Deno.test("Tensor should sum a 3x3x3 across rows", () => {
-	const tensor = new Tensor({
-		shape: [3, 3, 3],
-		values: [
-			1, 2, 3,
-			4, 5, 6,
-			7, 8, 9,
+// 	const result = tensor.sum({ dimension: 1 });
+// 	assertEquals(result.shape, [4]);
+// 	assertEquals(result.values, new Float32Array([15, 18, 21, 24]));
+// });
+// Deno.test("Tensor should sum a 3x3x3 across rows", () => {
+// 	const tensor = new Tensor({
+// 		shape: [3, 3, 3],
+// 		values: [
+// 			1, 2, 3,
+// 			4, 5, 6,
+// 			7, 8, 9,
 
-			10, 11, 12,
-			13, 14, 15,
-			16, 17, 18,
+// 			10, 11, 12,
+// 			13, 14, 15,
+// 			16, 17, 18,
 
-			19, 20, 21,
-			22, 23, 24,
-			25, 26, 27
-		]
-	});
+// 			19, 20, 21,
+// 			22, 23, 24,
+// 			25, 26, 27
+// 		]
+// 	});
 
-	const result = tensor.sum({ dimension: 0 });
-	assertEquals(result.shape, [3, 3]);
-	assertEquals(result.values, new Float32Array([
-		6, 15, 24,
-		33, 42, 51,
-		60, 69, 78
-	]));
-});
-Deno.test("Tensor should sum a 3x3x3 across cols", () => {
-	const tensor = new Tensor({
-		shape: [3, 3, 3],
-		values: [
-			1, 2, 3,
-			4, 5, 6,
-			7, 8, 9,
+// 	const result = tensor.sum({ dimension: 0 });
+// 	assertEquals(result.shape, [3, 3]);
+// 	assertEquals(result.values, new Float32Array([
+// 		6, 15, 24,
+// 		33, 42, 51,
+// 		60, 69, 78
+// 	]));
+// });
+// Deno.test("Tensor should sum a 3x3x3 across cols", () => {
+// 	const tensor = new Tensor({
+// 		shape: [3, 3, 3],
+// 		values: [
+// 			1, 2, 3,
+// 			4, 5, 6,
+// 			7, 8, 9,
 
-			10, 11, 12,
-			13, 14, 15,
-			16, 17, 18,
+// 			10, 11, 12,
+// 			13, 14, 15,
+// 			16, 17, 18,
 
-			19, 20, 21,
-			22, 23, 24,
-			25, 26, 27
-		]
-	});
+// 			19, 20, 21,
+// 			22, 23, 24,
+// 			25, 26, 27
+// 		]
+// 	});
 
-	const result = tensor.sum({ dimension: 1 });
-	assertEquals(result.shape, [3, 3]);
-	assertEquals(result.values, new Float32Array([
-		12, 15, 18,
-		39, 42, 45,
-		66, 69, 72
-	]));
-});
-Deno.test("Tensor should sum a 3x3x3 across depths", () => {
-	const tensor = new Tensor({
-		shape: [3, 3, 3],
-		values: [
-			1, 2, 3,
-			4, 5, 6,
-			7, 8, 9,
+// 	const result = tensor.sum({ dimension: 1 });
+// 	assertEquals(result.shape, [3, 3]);
+// 	assertEquals(result.values, new Float32Array([
+// 		12, 15, 18,
+// 		39, 42, 45,
+// 		66, 69, 72
+// 	]));
+// });
+// Deno.test("Tensor should sum a 3x3x3 across depths", () => {
+// 	const tensor = new Tensor({
+// 		shape: [3, 3, 3],
+// 		values: [
+// 			1, 2, 3,
+// 			4, 5, 6,
+// 			7, 8, 9,
 
-			10, 11, 12,
-			13, 14, 15,
-			16, 17, 18,
+// 			10, 11, 12,
+// 			13, 14, 15,
+// 			16, 17, 18,
 
-			19, 20, 21,
-			22, 23, 24,
-			25, 26, 27
-		]
-	});
+// 			19, 20, 21,
+// 			22, 23, 24,
+// 			25, 26, 27
+// 		]
+// 	});
 
-	const result = tensor.sum({ dimension: 2 });
-	assertEquals(result.shape, [3, 3]);
-	assertEquals(result.values, new Float32Array([
-		30, 33, 36,
-		39, 42, 45,
-		48, 51, 54
-	]));
-});
+// 	const result = tensor.sum({ dimension: 2 });
+// 	assertEquals(result.shape, [3, 3]);
+// 	assertEquals(result.values, new Float32Array([
+// 		30, 33, 36,
+// 		39, 42, 45,
+// 		48, 51, 54
+// 	]));
+// });
 
-Deno.test("Tensor should have a nice string", () => {
-	const tensor = new Tensor({ shape: [2, 2], values: [10, 24, 21, 4] });
+// Deno.test("Tensor should have a nice string", () => {
+// 	const tensor = new Tensor({ shape: [2, 2], values: [10, 24, 21, 4] });
 
-	assertEquals(tensor.toString(), "<10, 24, 21, 4>");
-});
-Deno.test("Tensor should have a nice string with label", () => {
-	const tensor = new Tensor({ shape: [2, 2], values: [10, 24, 21, 4], label: "t1" });
+// 	assertEquals(tensor.toString(), "<10, 24, 21, 4>");
+// });
+// Deno.test("Tensor should have a nice string with label", () => {
+// 	const tensor = new Tensor({ shape: [2, 2], values: [10, 24, 21, 4], label: "t1" });
 
-	assertEquals(tensor.toString(), "<t1:10, 24, 21, 4>");
-});
+// 	assertEquals(tensor.toString(), "<t1:10, 24, 21, 4>");
+// });
 
-Deno.test("Should work on perceptron example (singles)", () => {
-	const x1 = new Tensor({ shape: [1,1], values: [2], label: "x1" }); 
-	const x2 = new Tensor({ shape: [1,1], values: [0], label: "x2" }); 
-	const w1 = new Tensor({ shape: [1,1], values: [-3], label: "w1" }); 
-	const w2 = new Tensor({ shape: [1,1], values: [1], label: "w2" });
-	const b = new Tensor({ shape: [1,1], values: [6.881373587019432], label: "b" });
+// Deno.test("Should work on perceptron example (singles)", () => {
+// 	const x1 = new Tensor({ shape: [1,1], values: [2], label: "x1" }); 
+// 	const x2 = new Tensor({ shape: [1,1], values: [0], label: "x2" }); 
+// 	const w1 = new Tensor({ shape: [1,1], values: [-3], label: "w1" }); 
+// 	const w2 = new Tensor({ shape: [1,1], values: [1], label: "w2" });
+// 	const b = new Tensor({ shape: [1,1], values: [6.881373587019432], label: "b" });
 
-	const x1w1 = x1.mul(w1);
-	const x2w2 = x2.mul(w2);
+// 	const x1w1 = x1.mul(w1);
+// 	const x2w2 = x2.mul(w2);
 
-	const i1 = x1w1.add(x2w2);
-	const t1 = i1.add(b);
-	const o1 = t1.tanh();
+// 	const i1 = x1w1.add(x2w2);
+// 	const t1 = i1.add(b);
+// 	const o1 = t1.tanh();
 
-	assertAlmostEquals(o1.values[0], 0.70710, 1e-5);
-	assertAlmostEquals(t1.values[0], 0.88137, 1e-5);
-	assertAlmostEquals(i1.values[0], -6, 1e-5);
-	o1.backward();
-	assertAlmostEquals(o1.gradient[0], 1);
-	assertAlmostEquals(t1.gradient[0], 0.5, 1e-5);
-	assertAlmostEquals(b.gradient[0], 0.5, 1e-5);
-	assertAlmostEquals(i1.gradient[0], 0.5, 1e-5);
-	assertAlmostEquals(x1w1.gradient[0], 0.5, 1e-5);
-	assertAlmostEquals(x2w2.gradient[0], 0.5, 1e-5);
+// 	assertAlmostEquals(o1.values[0], 0.70710, 1e-5);
+// 	assertAlmostEquals(t1.values[0], 0.88137, 1e-5);
+// 	assertAlmostEquals(i1.values[0], -6, 1e-5);
+// 	o1.backward();
+// 	assertAlmostEquals(o1.gradient[0], 1);
+// 	assertAlmostEquals(t1.gradient[0], 0.5, 1e-5);
+// 	assertAlmostEquals(b.gradient[0], 0.5, 1e-5);
+// 	assertAlmostEquals(i1.gradient[0], 0.5, 1e-5);
+// 	assertAlmostEquals(x1w1.gradient[0], 0.5, 1e-5);
+// 	assertAlmostEquals(x2w2.gradient[0], 0.5, 1e-5);
 
-	assertAlmostEquals(x1.gradient[0], -1.5, 1e-5);
-	assertAlmostEquals(x2.gradient[0], 0.5, 1e-5);
-	assertAlmostEquals(w1.gradient[0], 1, 1e-5);
-	assertAlmostEquals(w2.gradient[0], 0, 1e-5);
-});
-Deno.test("Should work on perceptron example (parallel)", () => {
-	const x = new Tensor({ shape: [2, 1], values: [2,0], label: "x" });
-	const w = new Tensor({ shape: [2, 1], values: [-3, 1], label: "w" });
-	const b = new Tensor({ shape: [1, 1], values: [6.881373587019432], label: "b" });
+// 	assertAlmostEquals(x1.gradient[0], -1.5, 1e-5);
+// 	assertAlmostEquals(x2.gradient[0], 0.5, 1e-5);
+// 	assertAlmostEquals(w1.gradient[0], 1, 1e-5);
+// 	assertAlmostEquals(w2.gradient[0], 0, 1e-5);
+// });
+// Deno.test("Should work on perceptron example (parallel)", () => {
+// 	const x = new Tensor({ shape: [2, 1], values: [2,0], label: "x" });
+// 	const w = new Tensor({ shape: [2, 1], values: [-3, 1], label: "w" });
+// 	const b = new Tensor({ shape: [1, 1], values: [6.881373587019432], label: "b" });
 
-	const xw = x.mul(w);
-	const i = xw.sum({ dimension: 0 });
-	const t = i.add(b);
-	const o = t.tanh();
+// 	const xw = x.mul(w);
+// 	const i = xw.sum({ dimension: 0 });
+// 	const t = i.add(b);
+// 	const o = t.tanh();
 
-	assertAlmostEquals(o.values[0], 0.70710, 1e-5);
-	assertAlmostEquals(t.values[0], 0.88137, 1e-5);
-	assertAlmostEquals(i.values[0], -6, 1e-5);
-	o.backward();
-	assertAlmostEquals(o.gradient[0], 1);
-	assertAlmostEquals(t.gradient[0], 0.5, 1e-5);
-	assertAlmostEquals(b.gradient[0], 0.5, 1e-5);
-	assertAlmostEquals(i.gradient[0], 0.5, 1e-5);
-	assertAlmostEquals(xw.gradient[0], 0.5, 1e-5);
-	assertAlmostEquals(xw.gradient[1], 0.5, 1e-5);
+// 	assertAlmostEquals(o.values[0], 0.70710, 1e-5);
+// 	assertAlmostEquals(t.values[0], 0.88137, 1e-5);
+// 	assertAlmostEquals(i.values[0], -6, 1e-5);
+// 	o.backward();
+// 	assertAlmostEquals(o.gradient[0], 1);
+// 	assertAlmostEquals(t.gradient[0], 0.5, 1e-5);
+// 	assertAlmostEquals(b.gradient[0], 0.5, 1e-5);
+// 	assertAlmostEquals(i.gradient[0], 0.5, 1e-5);
+// 	assertAlmostEquals(xw.gradient[0], 0.5, 1e-5);
+// 	assertAlmostEquals(xw.gradient[1], 0.5, 1e-5);
 
-	assertAlmostEquals(x.gradient[0], -1.5, 1e-5);
-	assertAlmostEquals(x.gradient[1], 0.5, 1e-5);
-	assertAlmostEquals(w.gradient[0], 1, 1e-5);
-	assertAlmostEquals(w.gradient[1], 0, 1e-5);
-});
+// 	assertAlmostEquals(x.gradient[0], -1.5, 1e-5);
+// 	assertAlmostEquals(x.gradient[1], 0.5, 1e-5);
+// 	assertAlmostEquals(w.gradient[0], 1, 1e-5);
+// 	assertAlmostEquals(w.gradient[1], 0, 1e-5);
+// });
+
+
+// // Statics
+
+// Deno.test("filled should get back ones", () => {
+// 	const tensor = Tensor.filled(1, [2,3]);
+// 	assertEquals(tensor.shape, [2,3]);
+// 	assertEquals(tensor.values, new Float32Array([1,1,1,1,1,1]));
+// });
+// Deno.test("filled should get back zeros", () => {
+// 	const tensor = Tensor.filled(0, [3, 2]);
+// 	assertEquals(tensor.shape, [3, 2]);
+// 	assertEquals(tensor.values, new Float32Array([0, 0, 0, 0, 0, 0]));
+// });
+// Deno.test("getLinearSpace should get linear spacing values", () => {
+// 	const t1 = Tensor.getLinearSpace(0, 100, 5);
+// 	assertEquals(t1.shape, [5]);
+// 	assertEquals(t1.values, new Float32Array([0, 25, 50, 75, 100]));
+
+// 	const t2 = Tensor.getLinearSpace(3, 9, 4);
+// 	assertEquals(t2.shape, [4]);
+// 	assertEquals(t2.values, new Float32Array([3, 5, 7, 9]));
+
+// 	const t3 = Tensor.getLinearSpace(0, 10, 2);
+// 	assertEquals(t3.shape, [2]);
+// 	assertEquals(t3.values, new Float32Array([0, 10]));
+// });

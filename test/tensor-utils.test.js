@@ -1,4 +1,4 @@
-import { assertEquals} from "https://deno.land/std/assert/mod.ts";
+import { assertEquals} from "@std/assert";
 import { getFlatIndex, getDimensionalIndices } from "../src/tensor-utils.js";
 
 Deno.test("getFlatIndex should get flat index", () => {
