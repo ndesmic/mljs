@@ -1,5 +1,5 @@
 import { assertEquals, assertAlmostEquals } from "@std/assert";
-import { Value } from "../src/value.js";
+import { Value } from "../src/js/value.js";
 
 Deno.test("Value should add", () => {
 	const v1 = new Value(2);

@@ -1,5 +1,5 @@
 import { assertEquals } from "@std/assert";
-import { Tensor } from "../src/tensor.js";
+import { Tensor } from "../src/js/tensor.js";
 import { assertArrayAlmostEquals } from "./test-utils.js";
 
 Deno.test("Tensor should add", () => {
@@ -125,24 +125,6 @@ Deno.test("Tensor should divide same node", () => {
 		0
 	]));
 });
-
-Deno.test("Tensor negate", () => {
-	const t1 = new Tensor({ shape: [2, 2], values: [10, 24, 21, 4] });
-	const result = t1.neg();
-
-	assertEquals(result.shape, [2, 2]);
-	assertEquals(result.values, new Float32Array([-10, -24, -21, -4]));
-});
-Deno.test("Tensor should backprop gradient through neg", () => {
-	const t1 = new Tensor({ shape: [2, 2], values: [10, 24, 21, 4] });
-	const result = t1.neg();
-
-	assertEquals(result.values, new Float32Array([-10, -24, -21, -4]));
-	result.backward();
-	assertEquals(result.gradient, new Float32Array([1, 1, 1, 1]));
-	assertEquals(t1.gradient, new Float32Array([-1, -1, -1, -1]));
-});
-
 Deno.test("Tensor raises to power", () => {
 	const t1 = new Tensor({ shape: [2, 2], values: [2, 2, 2, 2] });
 	const t2 = new Tensor({ shape: [2, 2], values: [1, 2, 3, 4] });
@@ -161,20 +143,37 @@ Deno.test("Tensor should backprop gradient through pow", () => {
 	assertEquals(result.gradient, new Float32Array([1, 1, 1, 1]));
 	assertEquals(t1.gradient, new Float32Array([1, 4, 12, 32]));
 	assertEquals(t2.gradient, new Float32Array([
-		Math.log(2) * 2 ** 1, 
-		Math.log(2) * 2 ** 2, 
-		Math.log(2) * 2 ** 3, 
+		Math.log(2) * 2 ** 1,
+		Math.log(2) * 2 ** 2,
+		Math.log(2) * 2 ** 3,
 		Math.log(2) * 2 ** 4
 	]));
 });
 Deno.test("Tensor should pow same node", () => {
-	const t1 = new Tensor({ shape: [2, 2], values: [1,2,3,4] });
+	const t1 = new Tensor({ shape: [2, 2], values: [1, 2, 3, 4] });
 	const result = t1.pow(t1);
 
 	assertEquals(result.values, new Float32Array([1, 4, 27, 256]));
 	result.backward();
 	assertEquals(result.gradient, new Float32Array([1, 1, 1, 1]));
 	assertArrayAlmostEquals(t1.gradient, new Float32Array([1.0000, 6.7726, 56.6625, 610.8914]));
+});
+
+Deno.test("Tensor negate", () => {
+	const t1 = new Tensor({ shape: [2, 2], values: [10, 24, 21, 4] });
+	const result = t1.neg();
+
+	assertEquals(result.shape, [2, 2]);
+	assertEquals(result.values, new Float32Array([-10, -24, -21, -4]));
+});
+Deno.test("Tensor should backprop gradient through neg", () => {
+	const t1 = new Tensor({ shape: [2, 2], values: [10, 24, 21, 4] });
+	const result = t1.neg();
+
+	assertEquals(result.values, new Float32Array([-10, -24, -21, -4]));
+	result.backward();
+	assertEquals(result.gradient, new Float32Array([1, 1, 1, 1]));
+	assertEquals(t1.gradient, new Float32Array([-1, -1, -1, -1]));
 });
 
 Deno.test("Tensor exponentiates", () => {
@@ -188,10 +187,10 @@ Deno.test("Tensor should backprop gradient through exp", () => {
 	const t1 = new Tensor({ shape: [2, 2], values: [1, 2, 3, 4] });
 	const result = t1.exp();
 
-	assertEquals(result.values, new Float32Array([Math.exp(1), Math.exp(2), Math.exp(3), Math.exp(4)]));
+	assertArrayAlmostEquals(result.values, new Float32Array([Math.exp(1), Math.exp(2), Math.exp(3), Math.exp(4)]));
 	result.backward();
-	assertEquals(result.gradient, new Float32Array([1, 1, 1, 1]));
-	assertEquals(t1.gradient, new Float32Array([Math.exp(1), Math.exp(2), Math.exp(3), Math.exp(4)]));
+	assertArrayAlmostEquals(result.gradient, new Float32Array([1, 1, 1, 1]));
+	assertArrayAlmostEquals(t1.gradient, new Float32Array([Math.exp(1), Math.exp(2), Math.exp(3), Math.exp(4)]));
 });
 
 Deno.test("Tensor applies hyperbolic tangent", () => {
@@ -199,16 +198,16 @@ Deno.test("Tensor applies hyperbolic tangent", () => {
 	const result = t1.tanh();
 
 	assertEquals(result.shape, [2, 2]);
-	assertEquals(result.values, new Float32Array([Math.tanh(1), Math.tanh(2), Math.tanh(3), Math.tanh(4)]));
+	assertArrayAlmostEquals(result.values, new Float32Array([Math.tanh(1), Math.tanh(2), Math.tanh(3), Math.tanh(4)]));
 });
 Deno.test("Tensor should backprop gradient through tanh", () => {
 	const t1 = new Tensor({ shape: [2, 2], values: [1, 2, 3, 4] });
 	const result = t1.tanh();
 
-	assertEquals(result.values, new Float32Array([Math.tanh(1), Math.tanh(2), Math.tanh(3), Math.tanh(4)]));
+	assertArrayAlmostEquals(result.values, new Float32Array([Math.tanh(1), Math.tanh(2), Math.tanh(3), Math.tanh(4)]));
 	result.backward();
-	assertEquals(result.gradient, new Float32Array([1, 1, 1, 1]));
-	assertEquals(t1.gradient, new Float32Array([
+	assertArrayAlmostEquals(result.gradient, new Float32Array([1, 1, 1, 1]));
+	assertArrayAlmostEquals(t1.gradient, new Float32Array([
 		1 - Math.tanh(1) ** 2, 
 		1 - Math.tanh(2) ** 2, 
 		1 - Math.tanh(3) ** 2, 
@@ -216,112 +215,174 @@ Deno.test("Tensor should backprop gradient through tanh", () => {
 	]));
 });
 
-// Deno.test("Tensor should sum a 4x3 across row", () => {
-// 	const tensor = new Tensor({ 
-// 		shape: [4,3],
-// 		values: [
-// 			1, 2, 3, 4,
-// 			5, 6, 7, 8,
-// 			9, 10, 11, 12
-// 		]
-// 	});
+Deno.test("Tensor should sum a 4x3 across row", () => {
+	const tensor = new Tensor({ 
+		shape: [4,3],
+		values: [
+			1, 2, 3, 4,
+			5, 6, 7, 8,
+			9, 10, 11, 12
+		]
+	});
 
-// 	const result = tensor.sum({ dimension : 0 });
-// 	assertEquals(result.shape, [3]);
-// 	assertEquals(result.values, new Float32Array([10, 26, 42]));
-// });
-// Deno.test("Tensor should sum a 4x3 across cols", () => {
-// 	const tensor = new Tensor({
-// 		shape: [4, 3],
-// 		values: [
-// 			1, 2, 3, 4,
-// 			5, 6, 7, 8,
-// 			9, 10, 11, 12
-// 		]
-// 	});
+	const result = tensor.sum({ dimensionToReduce : 0 });
+	assertEquals(result.shape, [3]);
+	assertEquals(result.values, new Float32Array([10, 26, 42]));
+});
+Deno.test("Tensor should sum a 4x3 across cols", () => {
+	const tensor = new Tensor({
+		shape: [4, 3],
+		values: [
+			1, 2, 3, 4,
+			5, 6, 7, 8,
+			9, 10, 11, 12
+		]
+	});
 
-// 	const result = tensor.sum({ dimension: 1 });
-// 	assertEquals(result.shape, [4]);
-// 	assertEquals(result.values, new Float32Array([15, 18, 21, 24]));
-// });
-// Deno.test("Tensor should sum a 3x3x3 across rows", () => {
-// 	const tensor = new Tensor({
-// 		shape: [3, 3, 3],
-// 		values: [
-// 			1, 2, 3,
-// 			4, 5, 6,
-// 			7, 8, 9,
+	const result = tensor.sum({ dimensionToReduce: 1 });
+	assertEquals(result.shape, [4]);
+	assertEquals(result.values, new Float32Array([15, 18, 21, 24]));
+});
+Deno.test("Tensor should sum a 3x3x3 across rows", () => {
+	const tensor = new Tensor({
+		shape: [3, 3, 3],
+		values: [
+			1, 2, 3,
+			4, 5, 6,
+			7, 8, 9,
 
-// 			10, 11, 12,
-// 			13, 14, 15,
-// 			16, 17, 18,
+			10, 11, 12,
+			13, 14, 15,
+			16, 17, 18,
 
-// 			19, 20, 21,
-// 			22, 23, 24,
-// 			25, 26, 27
-// 		]
-// 	});
+			19, 20, 21,
+			22, 23, 24,
+			25, 26, 27
+		]
+	});
 
-// 	const result = tensor.sum({ dimension: 0 });
-// 	assertEquals(result.shape, [3, 3]);
-// 	assertEquals(result.values, new Float32Array([
-// 		6, 15, 24,
-// 		33, 42, 51,
-// 		60, 69, 78
-// 	]));
-// });
-// Deno.test("Tensor should sum a 3x3x3 across cols", () => {
-// 	const tensor = new Tensor({
-// 		shape: [3, 3, 3],
-// 		values: [
-// 			1, 2, 3,
-// 			4, 5, 6,
-// 			7, 8, 9,
+	const result = tensor.sum({ dimensionToReduce: 0 });
+	assertEquals(result.shape, [3, 3]);
+	assertEquals(result.values, new Float32Array([
+		6, 15, 24,
+		33, 42, 51,
+		60, 69, 78
+	]));
+});
+Deno.test("Tensor should sum a 3x3x3 across cols", () => {
+	const tensor = new Tensor({
+		shape: [3, 3, 3],
+		values: [
+			1, 2, 3,
+			4, 5, 6,
+			7, 8, 9,
 
-// 			10, 11, 12,
-// 			13, 14, 15,
-// 			16, 17, 18,
+			10, 11, 12,
+			13, 14, 15,
+			16, 17, 18,
 
-// 			19, 20, 21,
-// 			22, 23, 24,
-// 			25, 26, 27
-// 		]
-// 	});
+			19, 20, 21,
+			22, 23, 24,
+			25, 26, 27
+		]
+	});
 
-// 	const result = tensor.sum({ dimension: 1 });
-// 	assertEquals(result.shape, [3, 3]);
-// 	assertEquals(result.values, new Float32Array([
-// 		12, 15, 18,
-// 		39, 42, 45,
-// 		66, 69, 72
-// 	]));
-// });
-// Deno.test("Tensor should sum a 3x3x3 across depths", () => {
-// 	const tensor = new Tensor({
-// 		shape: [3, 3, 3],
-// 		values: [
-// 			1, 2, 3,
-// 			4, 5, 6,
-// 			7, 8, 9,
+	const result = tensor.sum({ dimensionToReduce: 1 });
+	assertEquals(result.shape, [3, 3]);
+	assertEquals(result.values, new Float32Array([
+		12, 15, 18,
+		39, 42, 45,
+		66, 69, 72
+	]));
+});
+Deno.test("Tensor should sum a 3x3x3 across depths", () => {
+	const tensor = new Tensor({
+		shape: [3, 3, 3],
+		values: [
+			1, 2, 3,
+			4, 5, 6,
+			7, 8, 9,
 
-// 			10, 11, 12,
-// 			13, 14, 15,
-// 			16, 17, 18,
+			10, 11, 12,
+			13, 14, 15,
+			16, 17, 18,
 
-// 			19, 20, 21,
-// 			22, 23, 24,
-// 			25, 26, 27
-// 		]
-// 	});
+			19, 20, 21,
+			22, 23, 24,
+			25, 26, 27
+		]
+	});
 
-// 	const result = tensor.sum({ dimension: 2 });
-// 	assertEquals(result.shape, [3, 3]);
-// 	assertEquals(result.values, new Float32Array([
-// 		30, 33, 36,
-// 		39, 42, 45,
-// 		48, 51, 54
-// 	]));
-// });
+	const result = tensor.sum({ dimensionToReduce: 2 });
+	assertEquals(result.shape, [3, 3]);
+	assertEquals(result.values, new Float32Array([
+		30, 33, 36,
+		39, 42, 45,
+		48, 51, 54
+	]));
+});
+Deno.test("Tensor should backprop across 3x3x3 tensor rows", () => {
+	const tensor = new Tensor({
+		shape: [3, 3, 3],
+		values: [
+			1, 2, 3,
+			4, 5, 6,
+			7, 8, 9,
+
+			10, 11, 12,
+			13, 14, 15,
+			16, 17, 18,
+
+			19, 20, 21,
+			22, 23, 24,
+			25, 26, 27
+		]
+	});
+	const tensor2 = new Tensor({
+		shape: [3,3,3],
+		values: [
+			2, 2, 3,
+			2, 2, 3,
+			2, 2, 3,
+
+			2, 2, 3,
+			2, 2, 3,
+			2, 2, 3,
+			
+			2, 2, 3,
+			2, 2, 3,
+			2, 2, 3
+		]
+	});
+
+	const result = tensor.mul(tensor2).sum({ dimensionToReduce: 0 });
+	assertEquals(result.shape, [3, 3]);
+	assertEquals(result.values, new Float32Array([
+		15, 
+		36, 
+		57,
+		78, 
+		99, 
+		120,
+		141, 
+		162, 
+		183
+	]));
+	result.backward();
+	assertEquals(tensor.gradient, new Float32Array([
+		2, 2, 3, 
+		2, 2, 3, 
+		2, 2, 3, 
+		
+		2, 2, 3, 
+		2, 2, 3,
+		2, 2, 3,
+
+		2, 2, 3,
+		2, 2, 3,
+		2, 2, 3
+	]));
+});
 
 // Deno.test("Tensor should have a nice string", () => {
 // 	const tensor = new Tensor({ shape: [2, 2], values: [10, 24, 21, 4] });

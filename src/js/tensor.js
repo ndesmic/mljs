@@ -143,27 +143,6 @@ export class Tensor {
 
 		return result;
 	}
-	neg() {
-		const values = new Float32Array(this.totalLength);
-		for (let i = 0; i < this.totalLength; i++) {
-			values[i] = -this.#values[i];
-		}
-
-		const result = new Tensor({
-			values,
-			shape: this.#shape,
-			children: [this],
-			op: `neg`
-		});
-
-		result[backward] = () => {
-			for (let i = 0; i < this.totalLength; i++) {
-				this.gradient[i] += -1 * result.gradient[i];
-			}
-		}
-
-		return result;
-	}
 	pow(other) {
 		if (other.totalLength != this.totalLength) throw new Error(`Tensor not the right length, argument was ${other.totalLength}, needs to be ${this.totalLength}`);
 
@@ -182,7 +161,28 @@ export class Tensor {
 		result[backward] = () => {
 			for (let i = 0; i < this.totalLength; i++) {
 				this.gradient[i] += other.values[i] * Math.pow(this.values[i], other.values[i] - 1) * result.gradient[i];
-				other.gradient[i] += Math.log(this.values[i]) * Math.pow(this.values[i], other.values[i]) * result.gradient[i]; 
+				other.gradient[i] += Math.log(this.values[i]) * Math.pow(this.values[i], other.values[i]) * result.gradient[i];
+			}
+		}
+
+		return result;
+	}
+	neg() {
+		const values = new Float32Array(this.totalLength);
+		for (let i = 0; i < this.totalLength; i++) {
+			values[i] = -this.#values[i];
+		}
+
+		const result = new Tensor({
+			values,
+			shape: this.#shape,
+			children: [this],
+			op: `neg`
+		});
+
+		result[backward] = () => {
+			for (let i = 0; i < this.totalLength; i++) {
+				this.gradient[i] += -1 * result.gradient[i];
 			}
 		}
 
@@ -231,15 +231,15 @@ export class Tensor {
 		return result;
 	}
 	//reductions
-	sum({ dimension, keepDims }){
-		const newShape = this.#shape.filter((_, i) => i !== dimension);
+	sum({ dimensionToReduce, keepDims }){
+		const newShape = this.#shape.filter((_, i) => i !== dimensionToReduce);
 		const outputLength = newShape.reduce((prod, x) => prod * x, 1);
 		const output = new Array(outputLength).fill(0);
 
 		for (let i = 0; i < output.length; i++) {
 			const newIndices = getDimensionalIndices(i, newShape);
-			for (let j = 0; j < this.#shape[dimension]; j++) {
-				const oldIndices = newIndices.toSpliced(dimension, 0, j);
+			for (let j = 0; j < this.#shape[dimensionToReduce]; j++) {
+				const oldIndices = newIndices.toSpliced(dimensionToReduce, 0, j);
 				const oldFlatIndex = getFlatIndex(oldIndices, this.#shape);
 
 				output[i] += this.#values[oldFlatIndex]
@@ -248,7 +248,7 @@ export class Tensor {
 		
 		const result = new Tensor({
 			values: output,
-			shape: keepDims ? newShape.toSpliced(dimension, 0, 1) : newShape,
+			shape: keepDims ? newShape.toSpliced(dimensionToReduce, 0, 1) : newShape,
 			children: [this],
 			op: "sum"
 		});
@@ -256,7 +256,7 @@ export class Tensor {
 		result[backward] = () => {
 			for (let i = 0; i < this.totalLength; i++) {
 				const inputIndices = getDimensionalIndices(i, this.#shape);
-				const outputIndices = inputIndices.toSpliced(dimension, 1);
+				const outputIndices = inputIndices.toSpliced(dimensionToReduce, 1);
 				const outputFlatIndex = getFlatIndex(outputIndices, newShape);
 				this.gradient[i] += result.gradient[outputFlatIndex];
 			}

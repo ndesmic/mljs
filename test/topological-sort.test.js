@@ -1,5 +1,5 @@
 import { assertEquals } from "@std/assert";
-import { topologicalSort } from "../src/topological-sort.js";
+import { topologicalSort } from "../src/js/topological-sort.js";
 
 Deno.test("should sort", () => {
 	const g = {

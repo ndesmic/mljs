@@ -1,4 +1,4 @@
-import { Tensor } from "../src/gpu-tensor.js";
+import { Tensor } from "../src/js/gpu-tensor.js";
 
 const adapter = await navigator.gpu.requestAdapter();
 const device = await adapter.requestDevice();
