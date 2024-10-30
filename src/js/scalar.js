@@ -2,7 +2,7 @@ import { topologicalSort } from "./topological-sort.js";
 
 const backward = Symbol("backward");
 
-export class Value {
+export class Scalar {
 	#value;
 	#children;
 	#op;
@@ -21,8 +21,8 @@ export class Value {
 		this.#label = options.label ?? "";
 	}
 	add(other) {
-		if (!(other instanceof Value)) other = new Value(other);
-		const result = new Value({
+		if (!(other instanceof Scalar)) other = new Scalar(other);
+		const result = new Scalar({
 			value: this.value + other.value,
 			children: [this, other],
 			op: "+"
@@ -34,8 +34,8 @@ export class Value {
 		return result;
 	}
 	sub(other) {
-		if (!(other instanceof Value)) other = new Value(other);
-		const result = new Value({
+		if (!(other instanceof Scalar)) other = new Scalar(other);
+		const result = new Scalar({
 			value: this.value - other.value,
 			children: [this, other],
 			op: "-"
@@ -47,8 +47,8 @@ export class Value {
 		return result;
 	}
 	mul(other) {
-		if (!(other instanceof Value)) other = new Value(other);
-		const result = new Value({
+		if (!(other instanceof Scalar)) other = new Scalar(other);
+		const result = new Scalar({
 			value: this.value * other.value,
 			children: [this, other],
 			op: "*"
@@ -60,8 +60,8 @@ export class Value {
 		return result;
 	}
 	div(other) {
-		if (!(other instanceof Value)) other = new Value(other);
-		const result = new Value({
+		if (!(other instanceof Scalar)) other = new Scalar(other);
+		const result = new Scalar({
 			value: this.value / other.value,
 			children: [this, other],
 			op: "/"
@@ -73,7 +73,7 @@ export class Value {
 		return result;
 	}
 	neg() {
-		const result = new Value({
+		const result = new Scalar({
 			value: -this.value,
 			children: [this],
 			op: `neg`
@@ -84,7 +84,7 @@ export class Value {
 		return result;
 	}
 	pow(other) {
-		const result = new Value({
+		const result = new Scalar({
 			value: Math.pow(this.value, other.value),
 			children: [this],
 			op: `pow`
@@ -96,7 +96,7 @@ export class Value {
 		return result;
 	}
 	exp() {
-		const result = new Value({
+		const result = new Scalar({
 			value: Math.exp(this.value),
 			children: [this],
 			op: "exp"
@@ -107,7 +107,7 @@ export class Value {
 		return result;
 	}
 	tanh() {
-		const result = new Value({
+		const result = new Scalar({
 			value: Math.tanh(this.value),
 			children: [this],
 			op: "tanh"
@@ -157,5 +157,5 @@ export class Value {
 }
 
 export function asValues(numbers) {
-	return numbers.map(n => new Value(n));
+	return numbers.map(n => new Scalar(n));
 }

@@ -2,7 +2,6 @@ import { getTotalLength } from "./tensor-utils.js";
 import { topologicalSort } from "./topological-sort.js";
 
 const kernel = Deno.dlopen("./dist/kernel.dll", {
-	sum_op: { parameters: ["buffer", "i32", "i32", "buffer"], result: "pointer" },
 	add_op: { parameters: ["i32", "buffer", "buffer"], result: "pointer" },
 	addBackprop_op: { parameters: ["i32", "buffer", "buffer", "buffer"], result: "void" },
 	sub_op: { parameters: ["i32", "buffer", "buffer"], result: "pointer" },
@@ -18,7 +17,9 @@ const kernel = Deno.dlopen("./dist/kernel.dll", {
 	exp_op: { parameters: ["i32", "buffer"], result: "pointer" },
 	expBackprop_op: { parameters: ["i32", "buffer", "buffer", "buffer"], result: "pointer" },
 	tanh_op: { parameters: ["i32", "buffer"], result: "pointer" },
-	tanhBackprop_op: { parameters: ["i32", "buffer", "buffer", "buffer"], result: "pointer" }
+	tanhBackprop_op: { parameters: ["i32", "buffer", "buffer", "buffer"], result: "pointer" },
+	sum_op: { parameters: ["buffer", "i32", "i32", "buffer"], result: "pointer" },
+	sumBackprop_op: { parameters: ["buffer", "i32", "i32", "buffer", "buffer"], result: "void" },
 });
 
 const backward = Symbol("backward");
@@ -221,13 +222,6 @@ export class CUDATensor {
 
 		return result;
 	}
-	backward() {
-		this.#gradient = new Float32Array(this.totalLength).fill(1);
-		const sortedDependencies = topologicalSort(this, x => x.children).reverse();
-		for (const node of sortedDependencies) {
-			node[backward]();
-		}
-	}
 	sum({ dimensionToReduce, keepDims }){
 		const outputLength = this.#shape.reduce((prod, x, idx) => {
 			return idx !== dimensionToReduce ? prod * x : prod;
@@ -248,14 +242,22 @@ export class CUDATensor {
 		});
 
 		result[backward] = () => {
-			// for (let i = 0; i < this.totalLength; i++) {
-			// 	const inputIndices = getDimensionalIndices(i, this.#shape);
-			// 	const outputIndices = inputIndices.toSpliced(dimension, 1);
-			// 	const outputFlatIndex = getFlatIndex(outputIndices, newShape);
-			// 	this.gradient[i] += result.gradient[outputFlatIndex];
-			// }
+			kernel.symbols.subBackprop_op(new Int32Array(this.#shape).buffer, this.#shape.length,  dimensionToReduce, this.#gradient, result.gradient);
 		}
 
 		return result;
+	}
+	backward() {
+		this.#gradient = new Float32Array(this.totalLength).fill(1);
+		const sortedDependencies = topologicalSort(this, x => x.children).reverse();
+		for (const node of sortedDependencies) {
+			node[backward]();
+		}
+	}
+	toString() {
+		return `<${this.#label ? `${this.#label}:` : ""}${Array.from(this.#values).join(", ")}>`;
+	}
+	[Symbol.for("Deno.customInspect")]() {
+		return this.toString();
 	}
 }

@@ -1,6 +1,6 @@
 {
   "tasks": {
-    "build" : "nvcc -o ./dist/kernel.dll --shared ./src/cuda/kernel.cu",
+    "build": "nvcc -o ./dist/kernel.dll --shared ./src/cuda/kernel.cu",
     "test": "deno task build && deno test --allow-ffi",
     "webtest": "deno run --allow-net --allow-read jsr:@std/http/file-server"
   },

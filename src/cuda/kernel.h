@@ -16,4 +16,5 @@ extern "C" __declspec(dllexport) void expBackprop_op(const int size, float *grad
 extern "C" __declspec(dllexport) float *tanh_op(const int size, const float *values);
 extern "C" __declspec(dllexport) void tanhBackprop_op(const int size, float *grad, const float *gradResult, const float *values);
 
-extern "C" __declspec(dllexport) float *sum_op(const int *dims, const int dimCount, const int dimToReduce, const float *values);
+extern "C" __declspec(dllexport) float *sum_op(const int *shape, const int shapeSize, const int dimToReduce, const float *values);
+extern "C" __declspec(dllexport) void sumBackprop_op(const int *shape, const int shapeSize, const int dimToReduce, float *grad, const float *gradResult);

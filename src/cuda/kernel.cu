@@ -214,15 +214,15 @@ __global__ void sumKernel(const int* shape, const int shapeSize, const int dimTo
 {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
-    int size = 1;
+    int newSize = 1;
     for (int j = 0; j < shapeSize; j++)
     {
         if (j != dimToReduce)
         {
-            size *= shape[j];
+            newSize *= shape[j];
         }
     }
-    if (idx < size)
+    if (idx < newSize)
     {
         int *newShape = removeAtIndex(shape, shapeSize, dimToReduce);
         int *partialDimIndex = getDimensionalIndex(idx, shape, shapeSize - 1);
@@ -234,7 +234,37 @@ __global__ void sumKernel(const int* shape, const int shapeSize, const int dimTo
             free(dimIndex);
         }
 
+        free(newShape);
         free(partialDimIndex);
+    }
+}
+
+__global__ void sumBackpropKernel(const int *shape, const int shapeSize, const int dimToReduce, float *grad, const float *gradResult)
+{
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+
+    int size = 1;
+    for (int j = 0; j < shapeSize; j++)
+    {
+        size *= shape[j];
+    }
+    int newSize = size / shape[dimToReduce];
+
+    if (idx < size)
+    {
+        int *newShape = removeAtIndex(shape, shapeSize, dimToReduce);
+        int *inputDimIndex = getDimensionalIndex(idx, shape, shapeSize);
+
+        for (int i = 0; i < shape[dimToReduce]; i++)
+        {
+            int *outputDimIndex = removeAtIndex(inputDimIndex, shapeSize, dimToReduce);
+            int outputFlatIdx = getFlatIndex(outputDimIndex, newShape, newSize);
+            grad[idx] += gradResult[outputFlatIdx];
+            free(outputDimIndex);
+        }
+
+        free(newShape);
+        free(inputDimIndex);
     }
 }
 
@@ -861,8 +891,8 @@ float* sum_op(const int* shape, const int shapeSize, const int dimToReduce, cons
     int* shape_d;
 
     cudaMalloc((void**)&values_d, size * sizeof(float));
-    cudaMalloc((void**)&shape_d, shapeSize * sizeof(int));
     cudaMalloc((void**)&output_d, outSize * sizeof(float));
+    cudaMalloc((void **)&shape_d, shapeSize * sizeof(int));
 
     cudaMemcpy(values_d, values, size * sizeof(float), cudaMemcpyHostToDevice);
     cudaMemcpy(shape_d, shape, shapeSize * sizeof(int), cudaMemcpyHostToDevice);
@@ -879,6 +909,47 @@ float* sum_op(const int* shape, const int shapeSize, const int dimToReduce, cons
 
     cudaFree(values_d);
     cudaFree(output_d);
+    cudaFree(shape_d);
 
     return output;
+}
+
+void sumBackprop_op(const int *shape, const int shapeSize, const int dimToReduce, float *grad, const float *gradResult)
+{
+    int BLOCK_SIZE = 4;
+
+    int size = 1;
+    for (int i = 0; i < shapeSize; i++)
+    {
+        size *= shape[i];
+    }
+    int outSize = size / shape[dimToReduce];
+
+    float *output = new float[outSize];
+
+    float *grad_d;
+    float *gradResult_d;
+    int *shape_d;
+
+    cudaMalloc((void **)&grad_d, size * sizeof(float));
+    cudaMalloc((void **)&gradResult_d, outSize * sizeof(float));
+    cudaMalloc((void **)&shape_d, shapeSize * sizeof(int));
+
+    cudaMemcpy(grad_d, grad, size * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(gradResult_d, gradResult, size * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(shape_d, shape, shapeSize * sizeof(int), cudaMemcpyHostToDevice);
+
+    sumBackpropKernel<<<ceil(outSize / (float)BLOCK_SIZE), BLOCK_SIZE>>>(shape_d, shapeSize, dimToReduce, grad_d, gradResult_d);
+    cudaDeviceSynchronize();
+    cudaError_t err = cudaGetLastError();
+    if (err != cudaSuccess)
+    {
+        printf("CUDA error: %s\n", cudaGetErrorString(err));
+    }
+
+    cudaMemcpy(grad, grad_d, outSize * sizeof(float), cudaMemcpyDeviceToHost);
+
+    cudaFree(grad_d);
+    cudaFree(gradResult_d);
+    cudaFree(shape_d);
 }
