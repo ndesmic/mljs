@@ -58,7 +58,6 @@ __device__ int getFlatIndex(const int dimensionalIndex[], const int shape[], con
         index *= shape[shapeSize - 1 - i];
         index += dimensionalIndex[shapeSize - 1 - i];
     }
-
     return index;
 }
 __global__ void addKernel(const int size, const float* valuesA, const float* valuesB, float* output)
@@ -66,7 +65,7 @@ __global__ void addKernel(const int size, const float* valuesA, const float* val
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (idx < size)
-    {
+    {        
         output[idx] = valuesA[idx] + valuesB[idx];
     }
 }
@@ -243,28 +242,24 @@ __global__ void sumBackpropKernel(const int *shape, const int shapeSize, const i
 {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
-    int size = 1;
+    int inSize = 1;
     for (int j = 0; j < shapeSize; j++)
     {
-        size *= shape[j];
+        inSize *= shape[j];
     }
-    int newSize = size / shape[dimToReduce];
 
-    if (idx < size)
+    if (idx < inSize)
     {
-        int *newShape = removeAtIndex(shape, shapeSize, dimToReduce);
-        int *inputDimIndex = getDimensionalIndex(idx, shape, shapeSize);
+        int *outShape = removeAtIndex(shape, shapeSize, dimToReduce);
+        int *inDimIndex = getDimensionalIndex(idx, shape, shapeSize);
+        int *outDimIndex = removeAtIndex(inDimIndex, shapeSize, dimToReduce);
+        int outputFlatIdx = getFlatIndex(outDimIndex, outShape, shapeSize - 1);
 
-        for (int i = 0; i < shape[dimToReduce]; i++)
-        {
-            int *outputDimIndex = removeAtIndex(inputDimIndex, shapeSize, dimToReduce);
-            int outputFlatIdx = getFlatIndex(outputDimIndex, newShape, newSize);
-            grad[idx] += gradResult[outputFlatIdx];
-            free(outputDimIndex);
-        }
+        grad[idx] += gradResult[outputFlatIdx];
 
-        free(newShape);
-        free(inputDimIndex);
+        free(outDimIndex);
+        free(outShape);
+        free(inDimIndex);
     }
 }
 
@@ -272,7 +267,8 @@ __global__ void sumBackpropKernel(const int *shape, const int shapeSize, const i
 
 float *add_op(const int size, const float *valuesA, const float *valuesB)
 {
-    int BLOCK_SIZE = 4;
+    int BLOCK_SIZE = 32;
+    int GRID_SIZE = (int)ceil(size / (float)BLOCK_SIZE);
 
     float *output = new float[size];
 
@@ -287,7 +283,7 @@ float *add_op(const int size, const float *valuesA, const float *valuesB)
     cudaMemcpy(valuesA_d, valuesA, size * sizeof(float), cudaMemcpyHostToDevice);
     cudaMemcpy(valuesB_d, valuesB, size * sizeof(float), cudaMemcpyHostToDevice);
 
-    addKernel<<<size / (float)BLOCK_SIZE, BLOCK_SIZE>>>(size, valuesA_d, valuesB_d, output_d);
+    addKernel<<<GRID_SIZE, BLOCK_SIZE>>>(size, valuesA_d, valuesB_d, output_d);
     cudaDeviceSynchronize();
     cudaError_t err = cudaGetLastError();
     if (err != cudaSuccess)
@@ -306,7 +302,8 @@ float *add_op(const int size, const float *valuesA, const float *valuesB)
 
 void addBackprop_op(const int size, float *gradA, float *gradB, const float *gradResult)
 {
-    int BLOCK_SIZE = 4;
+    int BLOCK_SIZE = 32;
+    int GRID_SIZE = (int)ceil(size / (float)BLOCK_SIZE);
 
     float *gradA_d;
     float *gradB_d;
@@ -320,13 +317,13 @@ void addBackprop_op(const int size, float *gradA, float *gradB, const float *gra
     cudaMemcpy(gradB_d, gradB, size * sizeof(float), cudaMemcpyHostToDevice);
     cudaMemcpy(gradResult_d, gradResult, size * sizeof(float), cudaMemcpyHostToDevice);
 
-    addBackpropKernel<<<size / (float)BLOCK_SIZE, BLOCK_SIZE>>>(size, gradA_d, gradB_d, gradResult_d);
+    addBackpropKernel<<<GRID_SIZE, BLOCK_SIZE>>>(size, gradA_d, gradB_d, gradResult_d);
 
     if (gradA == gradB)
     { // if same reference then we need to add them
         float *gradUnified_d;
         cudaMalloc((void **)&gradUnified_d, size * sizeof(float));
-        addKernel<<<size / (float)BLOCK_SIZE, BLOCK_SIZE>>>(size, gradA_d, gradB_d, gradUnified_d);
+        addKernel<<<GRID_SIZE, BLOCK_SIZE>>>(size, gradA_d, gradB_d, gradUnified_d);
 
         cudaMemcpy(gradA, gradUnified_d, size * sizeof(float), cudaMemcpyDeviceToHost);
         cudaMemcpy(gradB, gradUnified_d, size * sizeof(float), cudaMemcpyDeviceToHost);
@@ -352,7 +349,8 @@ void addBackprop_op(const int size, float *gradA, float *gradB, const float *gra
 
 float *sub_op(const int size, const float *valuesA, const float *valuesB)
 {
-    int BLOCK_SIZE = 4;
+    int BLOCK_SIZE = 32;
+    int GRID_SIZE = (int)ceil(size / (float)BLOCK_SIZE);
 
     float *output = new float[size];
 
@@ -367,7 +365,7 @@ float *sub_op(const int size, const float *valuesA, const float *valuesB)
     cudaMemcpy(valuesA_d, valuesA, size * sizeof(float), cudaMemcpyHostToDevice);
     cudaMemcpy(valuesB_d, valuesB, size * sizeof(float), cudaMemcpyHostToDevice);
 
-    subKernel<<<size / (float)BLOCK_SIZE, BLOCK_SIZE>>>(size, valuesA_d, valuesB_d, output_d);
+    subKernel<<<GRID_SIZE, BLOCK_SIZE>>>(size, valuesA_d, valuesB_d, output_d);
     cudaDeviceSynchronize();
     cudaError_t err = cudaGetLastError();
     if (err != cudaSuccess)
@@ -386,7 +384,8 @@ float *sub_op(const int size, const float *valuesA, const float *valuesB)
 
 void subBackprop_op(const int size, float *gradA, float *gradB, const float *gradResult)
 {
-    int BLOCK_SIZE = 4;
+    int BLOCK_SIZE = 32;
+    int GRID_SIZE = (int)ceil(size / (float)BLOCK_SIZE);
 
     float *gradA_d;
     float *gradB_d;
@@ -400,13 +399,13 @@ void subBackprop_op(const int size, float *gradA, float *gradB, const float *gra
     cudaMemcpy(gradB_d, gradB, size * sizeof(float), cudaMemcpyHostToDevice);
     cudaMemcpy(gradResult_d, gradResult, size * sizeof(float), cudaMemcpyHostToDevice);
 
-    subBackpropKernel<<<size / (float)BLOCK_SIZE, BLOCK_SIZE>>>(size, gradA_d, gradB_d, gradResult_d);
+    subBackpropKernel<<<GRID_SIZE, BLOCK_SIZE>>>(size, gradA_d, gradB_d, gradResult_d);
 
     if (gradA == gradB)
     { // if same reference then we need to add them
         float *gradUnified_d;
         cudaMalloc((void **)&gradUnified_d, size * sizeof(float));
-        addKernel<<<size / (float)BLOCK_SIZE, BLOCK_SIZE>>>(size, gradA_d, gradB_d, gradUnified_d);
+        addKernel<<<GRID_SIZE, BLOCK_SIZE>>>(size, gradA_d, gradB_d, gradUnified_d);
 
         cudaMemcpy(gradA, gradUnified_d, size * sizeof(float), cudaMemcpyDeviceToHost);
         cudaMemcpy(gradB, gradUnified_d, size * sizeof(float), cudaMemcpyDeviceToHost);
@@ -432,7 +431,8 @@ void subBackprop_op(const int size, float *gradA, float *gradB, const float *gra
 
 float *mul_op(const int size, const float *valuesA, const float *valuesB)
 {
-    int BLOCK_SIZE = 4;
+    int BLOCK_SIZE = 32;
+    int GRID_SIZE = (int)ceil(size / (float)BLOCK_SIZE);
 
     float *output = new float[size];
 
@@ -447,7 +447,7 @@ float *mul_op(const int size, const float *valuesA, const float *valuesB)
     cudaMemcpy(valuesA_d, valuesA, size * sizeof(float), cudaMemcpyHostToDevice);
     cudaMemcpy(valuesB_d, valuesB, size * sizeof(float), cudaMemcpyHostToDevice);
 
-    mulKernel<<<size / (float)BLOCK_SIZE, BLOCK_SIZE>>>(size, valuesA_d, valuesB_d, output_d);
+    mulKernel<<<GRID_SIZE, BLOCK_SIZE>>>(size, valuesA_d, valuesB_d, output_d);
     cudaDeviceSynchronize();
     cudaError_t err = cudaGetLastError();
     if (err != cudaSuccess)
@@ -466,7 +466,8 @@ float *mul_op(const int size, const float *valuesA, const float *valuesB)
 
 void mulBackprop_op(const int size, float *gradA, float *gradB, const float *gradResult, const float *valuesA, const float *valuesB)
 {
-    int BLOCK_SIZE = 4;
+    int BLOCK_SIZE = 32;
+    int GRID_SIZE = (int)ceil(size / (float)BLOCK_SIZE);
 
     float *gradA_d;
     float *gradB_d;
@@ -486,13 +487,13 @@ void mulBackprop_op(const int size, float *gradA, float *gradB, const float *gra
     cudaMemcpy(valuesA_d, valuesA, size * sizeof(float), cudaMemcpyHostToDevice);
     cudaMemcpy(valuesB_d, valuesB, size * sizeof(float), cudaMemcpyHostToDevice);
 
-    mulBackpropKernel<<<size / (float)BLOCK_SIZE, BLOCK_SIZE>>>(size, gradA_d, gradB_d, gradResult_d, valuesA_d, valuesB_d);
+    mulBackpropKernel<<<GRID_SIZE, BLOCK_SIZE>>>(size, gradA_d, gradB_d, gradResult_d, valuesA_d, valuesB_d);
 
     if (gradA == gradB)
     { // if same reference then we need to add them
         float *gradUnified_d;
         cudaMalloc((void **)&gradUnified_d, size * sizeof(float));
-        addKernel<<<size / (float)BLOCK_SIZE, BLOCK_SIZE>>>(size, gradA_d, gradB_d, gradUnified_d);
+        addKernel<<<GRID_SIZE, BLOCK_SIZE>>>(size, gradA_d, gradB_d, gradUnified_d);
 
         cudaMemcpy(gradA, gradUnified_d, size * sizeof(float), cudaMemcpyDeviceToHost);
         cudaMemcpy(gradB, gradUnified_d, size * sizeof(float), cudaMemcpyDeviceToHost);
@@ -520,7 +521,8 @@ void mulBackprop_op(const int size, float *gradA, float *gradB, const float *gra
 
 float *div_op(const int size, const float *valuesA, const float *valuesB)
 {
-    int BLOCK_SIZE = 4;
+    int BLOCK_SIZE = 32;
+    int GRID_SIZE = (int)ceil(size / (float)BLOCK_SIZE);
 
     float *output = new float[size];
 
@@ -535,7 +537,7 @@ float *div_op(const int size, const float *valuesA, const float *valuesB)
     cudaMemcpy(valuesA_d, valuesA, size * sizeof(float), cudaMemcpyHostToDevice);
     cudaMemcpy(valuesB_d, valuesB, size * sizeof(float), cudaMemcpyHostToDevice);
 
-    divKernel<<<size / (float)BLOCK_SIZE, BLOCK_SIZE>>>(size, valuesA_d, valuesB_d, output_d);
+    divKernel<<<GRID_SIZE, BLOCK_SIZE>>>(size, valuesA_d, valuesB_d, output_d);
     cudaDeviceSynchronize();
     cudaError_t err = cudaGetLastError();
     if (err != cudaSuccess)
@@ -554,7 +556,8 @@ float *div_op(const int size, const float *valuesA, const float *valuesB)
 
 void divBackprop_op(const int size, float *gradA, float *gradB, const float *gradResult, const float *valuesA, const float *valuesB)
 {
-    int BLOCK_SIZE = 4;
+    int BLOCK_SIZE = 32;
+    int GRID_SIZE = (int)ceil(size / (float)BLOCK_SIZE);
 
     float *gradA_d;
     float *gradB_d;
@@ -574,16 +577,23 @@ void divBackprop_op(const int size, float *gradA, float *gradB, const float *gra
     cudaMemcpy(valuesA_d, valuesA, size * sizeof(float), cudaMemcpyHostToDevice);
     cudaMemcpy(valuesB_d, valuesB, size * sizeof(float), cudaMemcpyHostToDevice);
 
-    divBackpropKernel<<<size / (float)BLOCK_SIZE, BLOCK_SIZE>>>(size, gradA_d, gradB_d, gradResult_d, valuesA_d, valuesB_d);
+    divBackpropKernel<<<GRID_SIZE, BLOCK_SIZE>>>(size, gradA_d, gradB_d, gradResult_d, valuesA_d, valuesB_d);
 
     if (gradA == gradB)
     { // if same reference then we need to add them
+
+        float *ggA = (float*)malloc(size * sizeof(float));
+        float *ggB = (float *)malloc(size * sizeof(float));
+        cudaMemcpy(ggA, gradA_d, size * sizeof(float), cudaMemcpyDeviceToHost);
+        cudaMemcpy(ggB, gradB_d, size * sizeof(float), cudaMemcpyDeviceToHost);
+
         float *gradUnified_d;
         cudaMalloc((void **)&gradUnified_d, size * sizeof(float));
-        addKernel<<<size / (float)BLOCK_SIZE, BLOCK_SIZE>>>(size, gradA_d, gradB_d, gradUnified_d);
+        addKernel<<<GRID_SIZE, BLOCK_SIZE>>>(size, gradA_d, gradB_d, gradUnified_d);
 
         cudaMemcpy(gradA, gradUnified_d, size * sizeof(float), cudaMemcpyDeviceToHost);
         cudaMemcpy(gradB, gradUnified_d, size * sizeof(float), cudaMemcpyDeviceToHost);
+
         cudaFree(gradUnified_d);
     }
     else
@@ -608,7 +618,8 @@ void divBackprop_op(const int size, float *gradA, float *gradB, const float *gra
 
 float *pow_op(const int size, const float *valuesA, const float *valuesB)
 {
-    int BLOCK_SIZE = 4;
+    int BLOCK_SIZE = 32;
+    int GRID_SIZE = (int)ceil(size / (float)BLOCK_SIZE);
 
     float *output = new float[size];
 
@@ -623,7 +634,7 @@ float *pow_op(const int size, const float *valuesA, const float *valuesB)
     cudaMemcpy(valuesA_d, valuesA, size * sizeof(float), cudaMemcpyHostToDevice);
     cudaMemcpy(valuesB_d, valuesB, size * sizeof(float), cudaMemcpyHostToDevice);
 
-    powKernel<<<size / (float)BLOCK_SIZE, BLOCK_SIZE>>>(size, valuesA_d, valuesB_d, output_d);
+    powKernel<<<GRID_SIZE, BLOCK_SIZE>>>(size, valuesA_d, valuesB_d, output_d);
     cudaDeviceSynchronize();
     cudaError_t err = cudaGetLastError();
     if (err != cudaSuccess)
@@ -642,7 +653,8 @@ float *pow_op(const int size, const float *valuesA, const float *valuesB)
 
 void powBackprop_op(const int size, float *gradA, float *gradB, const float *gradResult, const float *valuesA, const float *valuesB)
 {
-    int BLOCK_SIZE = 4;
+    int BLOCK_SIZE = 32;
+    int GRID_SIZE = (int)ceil(size / (float)BLOCK_SIZE);
 
     float *gradA_d;
     float *gradB_d;
@@ -662,13 +674,13 @@ void powBackprop_op(const int size, float *gradA, float *gradB, const float *gra
     cudaMemcpy(valuesA_d, valuesA, size * sizeof(float), cudaMemcpyHostToDevice);
     cudaMemcpy(valuesB_d, valuesB, size * sizeof(float), cudaMemcpyHostToDevice);
 
-    powBackpropKernel<<<size / (float)BLOCK_SIZE, BLOCK_SIZE>>>(size, gradA_d, gradB_d, gradResult_d, valuesA_d, valuesB_d);
+    powBackpropKernel<<<GRID_SIZE, BLOCK_SIZE>>>(size, gradA_d, gradB_d, gradResult_d, valuesA_d, valuesB_d);
 
     if (gradA == gradB)
     { // if same reference then we need to add them
         float *gradUnified_d;
         cudaMalloc((void **)&gradUnified_d, size * sizeof(float));
-        addKernel<<<size / (float)BLOCK_SIZE, BLOCK_SIZE>>>(size, gradA_d, gradB_d, gradUnified_d);
+        addKernel<<<GRID_SIZE, BLOCK_SIZE>>>(size, gradA_d, gradB_d, gradUnified_d);
 
         cudaMemcpy(gradA, gradUnified_d, size * sizeof(float), cudaMemcpyDeviceToHost);
         cudaMemcpy(gradB, gradUnified_d, size * sizeof(float), cudaMemcpyDeviceToHost);
@@ -696,7 +708,8 @@ void powBackprop_op(const int size, float *gradA, float *gradB, const float *gra
 
 //Unary Ops
 float* neg_op(const int size, const float *values){
-    int BLOCK_SIZE = 4;
+    int BLOCK_SIZE = 32;
+    int GRID_SIZE = (int)ceil(size / (float)BLOCK_SIZE);
 
     float *output = new float[size];
 
@@ -708,7 +721,7 @@ float* neg_op(const int size, const float *values){
 
     cudaMemcpy(values_d, values, size * sizeof(float), cudaMemcpyHostToDevice);
 
-    negKernel<<<size / (float)BLOCK_SIZE, BLOCK_SIZE>>>(size, values_d, output_d);
+    negKernel<<<GRID_SIZE, BLOCK_SIZE>>>(size, values_d, output_d);
     cudaDeviceSynchronize();
     cudaError_t err = cudaGetLastError();
     if (err != cudaSuccess)
@@ -725,7 +738,8 @@ float* neg_op(const int size, const float *values){
 }
 void negBackprop_op(const int size, float *grad, const float *gradResult)
 {
-    int BLOCK_SIZE = 4;
+    int BLOCK_SIZE = 32;
+    int GRID_SIZE = (int)ceil(size / (float)BLOCK_SIZE);
 
     float *grad_d;
     float *gradResult_d;
@@ -736,7 +750,7 @@ void negBackprop_op(const int size, float *grad, const float *gradResult)
     cudaMemcpy(grad_d, grad, size * sizeof(float), cudaMemcpyHostToDevice);
     cudaMemcpy(gradResult_d, gradResult, size * sizeof(float), cudaMemcpyHostToDevice);
 
-    negBackpropKernel<<<size / (float)BLOCK_SIZE, BLOCK_SIZE>>>(size, grad_d, gradResult_d);
+    negBackpropKernel<<<GRID_SIZE, BLOCK_SIZE>>>(size, grad_d, gradResult_d);
 
     cudaMemcpy(grad, grad_d, size * sizeof(float), cudaMemcpyDeviceToHost);
 
@@ -752,7 +766,8 @@ void negBackprop_op(const int size, float *grad, const float *gradResult)
 }
 float *exp_op(const int size, const float *values)
 {
-    int BLOCK_SIZE = 4;
+    int BLOCK_SIZE = 32;
+    int GRID_SIZE = (int)ceil(size / (float)BLOCK_SIZE);
 
     float *output = new float[size];
 
@@ -764,7 +779,7 @@ float *exp_op(const int size, const float *values)
 
     cudaMemcpy(values_d, values, size * sizeof(float), cudaMemcpyHostToDevice);
 
-    expKernel<<<size / (float)BLOCK_SIZE, BLOCK_SIZE>>>(size, values_d, output_d);
+    expKernel<<<GRID_SIZE, BLOCK_SIZE>>>(size, values_d, output_d);
     cudaDeviceSynchronize();
     cudaError_t err = cudaGetLastError();
     if (err != cudaSuccess)
@@ -781,7 +796,8 @@ float *exp_op(const int size, const float *values)
 }
 void expBackprop_op(const int size, float *grad, const float *gradResult, const float *values)
 {
-    int BLOCK_SIZE = 4;
+    int BLOCK_SIZE = 32;
+    int GRID_SIZE = (int)ceil(size / (float)BLOCK_SIZE);
 
     float *grad_d;
     float *gradResult_d;
@@ -795,7 +811,7 @@ void expBackprop_op(const int size, float *grad, const float *gradResult, const 
     cudaMemcpy(gradResult_d, gradResult, size * sizeof(float), cudaMemcpyHostToDevice);
     cudaMemcpy(values_d, values, size * sizeof(float), cudaMemcpyHostToDevice);
 
-    expBackpropKernel<<<size / (float)BLOCK_SIZE, BLOCK_SIZE>>>(size, grad_d, gradResult_d, values_d);
+    expBackpropKernel<<<GRID_SIZE, BLOCK_SIZE>>>(size, grad_d, gradResult_d, values_d);
 
     cudaMemcpy(grad, grad_d, size * sizeof(float), cudaMemcpyDeviceToHost);
 
@@ -812,7 +828,8 @@ void expBackprop_op(const int size, float *grad, const float *gradResult, const 
 }
 float *tanh_op(const int size, const float *values)
 {
-    int BLOCK_SIZE = 4;
+    int BLOCK_SIZE = 32;
+    int GRID_SIZE = (int)ceil(size / (float)BLOCK_SIZE);
 
     float *output = new float[size];
 
@@ -824,7 +841,7 @@ float *tanh_op(const int size, const float *values)
 
     cudaMemcpy(values_d, values, size * sizeof(float), cudaMemcpyHostToDevice);
 
-    tanhKernel<<<size / (float)BLOCK_SIZE, BLOCK_SIZE>>>(size, values_d, output_d);
+    tanhKernel<<<GRID_SIZE, BLOCK_SIZE>>>(size, values_d, output_d);
     cudaDeviceSynchronize();
     cudaError_t err = cudaGetLastError();
     if (err != cudaSuccess)
@@ -841,7 +858,8 @@ float *tanh_op(const int size, const float *values)
 }
 void tanhBackprop_op(const int size, float *grad, const float *gradResult, const float *values)
 {
-    int BLOCK_SIZE = 4;
+    int BLOCK_SIZE = 32;
+    int GRID_SIZE = (int)ceil(size / (float)BLOCK_SIZE);
 
     float *grad_d;
     float *gradResult_d;
@@ -855,7 +873,7 @@ void tanhBackprop_op(const int size, float *grad, const float *gradResult, const
     cudaMemcpy(gradResult_d, gradResult, size * sizeof(float), cudaMemcpyHostToDevice);
     cudaMemcpy(values_d, values, size * sizeof(float), cudaMemcpyHostToDevice);
 
-    tanhBackpropKernel<<<size / (float)BLOCK_SIZE, BLOCK_SIZE>>>(size, grad_d, gradResult_d, values_d);
+    tanhBackpropKernel<<<GRID_SIZE, BLOCK_SIZE>>>(size, grad_d, gradResult_d, values_d);
 
     cudaMemcpy(grad, grad_d, size * sizeof(float), cudaMemcpyDeviceToHost);
 
@@ -875,7 +893,7 @@ void tanhBackprop_op(const int size, float *grad, const float *gradResult, const
 
 float* sum_op(const int* shape, const int shapeSize, const int dimToReduce, const float* values)
 {
-    int BLOCK_SIZE = 4;
+    int BLOCK_SIZE = 32;
 
     int size = 1;
     for (int i = 0; i < shapeSize; i++)
@@ -883,6 +901,8 @@ float* sum_op(const int* shape, const int shapeSize, const int dimToReduce, cons
         size *= shape[i];
     }
     int outSize = size / shape[dimToReduce];
+
+    int GRID_SIZE = (int)ceil(size / (float)BLOCK_SIZE);
 
     float* output = new float[outSize];
 
@@ -897,7 +917,7 @@ float* sum_op(const int* shape, const int shapeSize, const int dimToReduce, cons
     cudaMemcpy(values_d, values, size * sizeof(float), cudaMemcpyHostToDevice);
     cudaMemcpy(shape_d, shape, shapeSize * sizeof(int), cudaMemcpyHostToDevice);
 
-    sumKernel<<<ceil(outSize / (float)BLOCK_SIZE), BLOCK_SIZE >>> (shape_d, shapeSize, dimToReduce, values_d, output_d);
+    sumKernel<<<GRID_SIZE, BLOCK_SIZE >>> (shape_d, shapeSize, dimToReduce, values_d, output_d);
     cudaDeviceSynchronize();
     cudaError_t err = cudaGetLastError();
     if (err != cudaSuccess)
@@ -916,7 +936,7 @@ float* sum_op(const int* shape, const int shapeSize, const int dimToReduce, cons
 
 void sumBackprop_op(const int *shape, const int shapeSize, const int dimToReduce, float *grad, const float *gradResult)
 {
-    int BLOCK_SIZE = 4;
+    int BLOCK_SIZE = 32;
 
     int size = 1;
     for (int i = 0; i < shapeSize; i++)
@@ -925,21 +945,21 @@ void sumBackprop_op(const int *shape, const int shapeSize, const int dimToReduce
     }
     int outSize = size / shape[dimToReduce];
 
-    float *output = new float[outSize];
+    int GRID_SIZE = (int)ceil(size / (float)BLOCK_SIZE);
 
     float *grad_d;
     float *gradResult_d;
     int *shape_d;
 
     cudaMalloc((void **)&grad_d, size * sizeof(float));
-    cudaMalloc((void **)&gradResult_d, outSize * sizeof(float));
+    cudaMalloc((void **)&gradResult_d, size * sizeof(float));
     cudaMalloc((void **)&shape_d, shapeSize * sizeof(int));
 
     cudaMemcpy(grad_d, grad, size * sizeof(float), cudaMemcpyHostToDevice);
-    cudaMemcpy(gradResult_d, gradResult, size * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(gradResult_d, gradResult, outSize * sizeof(float), cudaMemcpyHostToDevice);
     cudaMemcpy(shape_d, shape, shapeSize * sizeof(int), cudaMemcpyHostToDevice);
 
-    sumBackpropKernel<<<ceil(outSize / (float)BLOCK_SIZE), BLOCK_SIZE>>>(shape_d, shapeSize, dimToReduce, grad_d, gradResult_d);
+    sumBackpropKernel<<<GRID_SIZE, BLOCK_SIZE>>>(shape_d, shapeSize, dimToReduce, grad_d, gradResult_d);
     cudaDeviceSynchronize();
     cudaError_t err = cudaGetLastError();
     if (err != cudaSuccess)
@@ -947,7 +967,7 @@ void sumBackprop_op(const int *shape, const int shapeSize, const int dimToReduce
         printf("CUDA error: %s\n", cudaGetErrorString(err));
     }
 
-    cudaMemcpy(grad, grad_d, outSize * sizeof(float), cudaMemcpyDeviceToHost);
+    cudaMemcpy(grad, grad_d, size * sizeof(float), cudaMemcpyDeviceToHost);
 
     cudaFree(grad_d);
     cudaFree(gradResult_d);

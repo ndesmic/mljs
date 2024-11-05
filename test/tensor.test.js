@@ -1,4 +1,5 @@
-import { assertEquals } from "@std/assert";
+import { assertEquals, assertAlmostEquals } from "@std/assert";
+import { getRandom } from "../src/js/tensor-utils.js";
 import { Tensor } from "../src/js/tensor.js";
 import { assertArrayAlmostEquals } from "./test-utils.js";
 import { describe, it } from "@std/testing/bdd";
@@ -163,7 +164,7 @@ describe("Tensor", () => {
 			assertEquals(result.values, new Float32Array([1, 4, 27, 256]));
 			result.backward();
 			assertArrayAlmostEquals(result.gradient, new Float32Array([1, 1, 1, 1]));
-			assertArrayAlmostEquals(t1.gradient, new Float32Array([1.0000, 6.7726, 56.6625, 610.8914]));
+			assertArrayAlmostEquals(t1.gradient, new Float32Array([1.0000, 6.7726, 56.6625, 610.8914]), 1e-4);
 		});
 	});
 	describe("negate", () => {
@@ -349,6 +350,46 @@ describe("Tensor", () => {
 					25, 26, 27
 				]
 			});
+	
+			const result = tensor.sum({ dimensionToReduce: 0});
+			assertEquals(result.shape, [3, 3]);
+			assertEquals(result.values, new Float32Array([
+				6, 15, 24,
+				33, 42, 51,
+				60, 69, 78
+			]));
+			result.backward();
+			assertEquals(tensor.gradient, new Float32Array([
+				1, 1, 1,
+				1, 1, 1,
+				1, 1, 1,
+
+				1, 1, 1,
+				1, 1, 1,
+				1, 1, 1,
+
+				1, 1, 1,
+				1, 1, 1,
+				1, 1, 1
+			]));
+		});
+		it("should backprop 2", () => {
+			const tensor = new Tensor({
+				shape: [3, 3, 3],
+				values: [
+					1, 2, 3,
+					4, 5, 6,
+					7, 8, 9,
+
+					10, 11, 12,
+					13, 14, 15,
+					16, 17, 18,
+
+					19, 20, 21,
+					22, 23, 24,
+					25, 26, 27
+				]
+			});
 			const tensor2 = new Tensor({
 				shape: [3, 3, 3],
 				values: [
@@ -442,30 +483,29 @@ describe("Tensor", () => {
 	});
 	describe("perception example (2x2)", () => {
 		it("should forward and backward pass correctly", () => {
-			const x = new Tensor({ shape: [2, 1], values: [2, 0], label: "x" });
-			const w = new Tensor({ shape: [2, 1], values: [-3, 1], label: "w" });
-			const b = new Tensor({ shape: [1, 1], values: [6.881373587019432], label: "b" });
+			const x = new Tensor({ shape: [2, 2], values: [2, 0, 6, 9], label: "x" });
+			const w = new Tensor({ shape: [2, 2], values: [-3, 1, -1, 2], label: "w" });
+			const b = new Tensor({ shape: [2], values: [4, 5], label: "b" });
 
 			const xw = x.mul(w);
-			const i = xw.sum({ dimension: 0 });
+			const i = xw.sum({ dimensionToReduce: 0 });
 			const t = i.add(b);
 			const o = t.tanh();
 
-			assertAlmostEquals(o.values[0], 0.70710, 1e-5);
-			assertAlmostEquals(t.values[0], 0.88137, 1e-5);
-			assertAlmostEquals(i.values[0], -6, 1e-5);
-			o.backward();
-			assertAlmostEquals(o.gradient[0], 1);
-			assertAlmostEquals(t.gradient[0], 0.5, 1e-5);
-			assertAlmostEquals(b.gradient[0], 0.5, 1e-5);
-			assertAlmostEquals(i.gradient[0], 0.5, 1e-5);
-			assertAlmostEquals(xw.gradient[0], 0.5, 1e-5);
-			assertAlmostEquals(xw.gradient[1], 0.5, 1e-5);
+			assertArrayAlmostEquals(xw.values, [-6, 0, -6, 18]);
+			assertArrayAlmostEquals(i.values, [-6, 12]);
+			assertArrayAlmostEquals(t.values, [-2, 17]);
+			assertArrayAlmostEquals(o.values, new Float32Array([-0.9640, 1]), 1e-4)
 
-			assertAlmostEquals(x.gradient[0], -1.5, 1e-5);
-			assertAlmostEquals(x.gradient[1], 0.5, 1e-5);
-			assertAlmostEquals(w.gradient[0], 1, 1e-5);
-			assertAlmostEquals(w.gradient[1], 0, 1e-5);
+			o.backward();
+
+			assertArrayAlmostEquals(o.gradient, [1,1]);
+			assertArrayAlmostEquals(t.gradient, [0.0707, 0], 1e-4);
+			assertArrayAlmostEquals(i.gradient, [0.0707, 0], 1e-4);
+			assertArrayAlmostEquals(xw.gradient, [0.0707, 0.0707, 0, 0], 1e-4);
+			assertArrayAlmostEquals(b.gradient, [0.0707, 0], 1e-4);
+			assertArrayAlmostEquals(w.gradient, [0.1413, 0, 0, 0], 1e-4);
+			assertArrayAlmostEquals(x.gradient, [-0.212, 0.0707, 0, 0], 1e-4);
 		});
 	});
 	describe("filled", () => {
@@ -478,6 +518,24 @@ describe("Tensor", () => {
 			const tensor = Tensor.filled(0, [3, 2]);
 			assertEquals(tensor.shape, [3, 2]);
 			assertEquals(tensor.values, new Float32Array([0, 0, 0, 0, 0, 0]));
+		});
+	});
+	describe("random", () => {
+		it("should give back random values (seeded)", () => {
+			const generator = getRandom(0, 10, 77);
+			const tensor = Tensor.random([3, 3], { generator });
+			assertEquals(tensor.shape, [3, 3]);
+			assertArrayAlmostEquals(tensor.values, [
+				0.006026304326951504,
+				1.2840968370437622,
+				1.8160980939865112,
+				3.1606016159057617,
+				0.23077280819416046,
+				8.598573684692383,
+				6.224354267120361,
+				2.725831985473633,
+				3.058232545852661,
+			]);
 		});
 	});
 	describe("getLinearSpace", () => {

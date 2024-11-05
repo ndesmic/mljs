@@ -1,5 +1,5 @@
 import { topologicalSort } from "./topological-sort.js";
-import { getDimensionalIndices, getFlatIndex, getTotalLength } from "./tensor-utils.js";
+import { getDimensionalIndices, getFlatIndex, getRandom, getTotalLength } from "./tensor-utils.js";
 
 const backward = Symbol("backward");
 
@@ -258,6 +258,7 @@ export class Tensor {
 				const inputIndices = getDimensionalIndices(i, this.#shape);
 				const outputIndices = inputIndices.toSpliced(dimensionToReduce, 1);
 				const outputFlatIndex = getFlatIndex(outputIndices, newShape);
+				//console.log(`CPUd: ${inputIndices.join(", ")} | fi: ${outputFlatIndex}`);
 				this.gradient[i] += result.gradient[outputFlatIndex];
 			}
 		}
@@ -280,6 +281,13 @@ export class Tensor {
 
 	static filled(value, shape) {
 		return new Tensor({ values: new Float32Array(getTotalLength(shape)).fill(value), shape });
+	}
+	static random(shape, options = {}) {
+		const length = getTotalLength(shape);
+		const values = new Float32Array(length);
+		const generator = options.generator ?? getRandom(options.min, options.max, options.seed);
+		values.set(generator.take(length).toArray(), 0);
+		return new Tensor({ values, shape });
 	}
 	static getLinearSpace(start, end, steps) {
 		steps = steps - 1; //counting the spaces not the nodes

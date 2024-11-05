@@ -68,7 +68,10 @@ export class CUDATensor {
 	get children() {
 		return this.#children;
 	}
-	add(other) {
+	set label(val){
+		this.#label = val;
+	}
+	add(other, options = {}) {
 		if (other.totalLength != this.totalLength) throw new Error(`Tensor not the right length, argument was ${other.totalLength}, needs to be ${this.totalLength}`);
 
 		const resultPointer = kernel.symbols.add_op(this.totalLength, this.#values, other.values);
@@ -79,7 +82,8 @@ export class CUDATensor {
 			values,
 			shape: this.#shape,
 			children: [this, other],
-			op: "+"
+			op: "+",
+			label: options.label
 		});
 
 		result[backward] = () => {
@@ -88,7 +92,7 @@ export class CUDATensor {
 
 		return result;
 	}
-	sub(other) {
+	sub(other, options = {}) {
 		if (other.totalLength != this.totalLength) throw new Error(`Tensor not the right length, argument was ${other.totalLength}, needs to be ${this.totalLength}`);
 
 		const resultPointer = kernel.symbols.sub_op(this.totalLength, this.#values, other.values);
@@ -99,7 +103,8 @@ export class CUDATensor {
 			values,
 			shape: this.#shape,
 			children: [this, other],
-			op: "-"
+			op: "-",
+			label: options.label
 		});
 
 		result[backward] = () => {
@@ -108,7 +113,7 @@ export class CUDATensor {
 
 		return result;
 	}
-	mul(other) {
+	mul(other, options = {}) {
 		if (other.totalLength != this.totalLength) throw new Error(`Tensor not the right length, argument was ${other.totalLength}, needs to be ${this.totalLength}`);
 
 		const resultPointer = kernel.symbols.mul_op(this.totalLength, this.#values, other.values);
@@ -119,7 +124,8 @@ export class CUDATensor {
 			values,
 			shape: this.#shape,
 			children: [this, other],
-			op: "*"
+			op: "*",
+			label: options.label
 		});
 
 		result[backward] = () => {
@@ -128,7 +134,7 @@ export class CUDATensor {
 
 		return result;
 	}
-	div(other) {
+	div(other, options = {}) {
 		if (other.totalLength != this.totalLength) throw new Error(`Tensor not the right length, argument was ${other.totalLength}, needs to be ${this.totalLength}`);
 
 		const resultPointer = kernel.symbols.div_op(this.totalLength, this.#values, other.values);
@@ -139,7 +145,8 @@ export class CUDATensor {
 			values,
 			shape: this.#shape,
 			children: [this, other],
-			op: "/"
+			op: "/",
+			label: options.label
 		});
 
 		result[backward] = () => {
@@ -148,7 +155,7 @@ export class CUDATensor {
 
 		return result;
 	}
-	pow(other) {
+	pow(other, options = {}) {
 		if (other.totalLength != this.totalLength) throw new Error(`Tensor not the right length, argument was ${other.totalLength}, needs to be ${this.totalLength}`);
 
 		const resultPointer = kernel.symbols.pow_op(this.totalLength, this.#values, other.values);
@@ -159,7 +166,8 @@ export class CUDATensor {
 			values,
 			shape: this.#shape,
 			children: [this, other],
-			op: "pow"
+			op: "pow",
+			label: options.label
 		});
 
 		result[backward] = () => {
@@ -168,7 +176,7 @@ export class CUDATensor {
 
 		return result;
 	}
-	neg() {
+	neg(options = {}) {
 		const resultPointer = kernel.symbols.neg_op(this.totalLength, this.#values);
 		const outBuffer = Deno.UnsafePointerView.getArrayBuffer(resultPointer, this.totalLength * 4);
 		const values = new Float32Array(outBuffer);
@@ -177,7 +185,8 @@ export class CUDATensor {
 			values,
 			shape: this.#shape,
 			children: [this],
-			op: `neg`
+			op: `neg`,
+			label: options.label
 		});
 
 		result[backward] = () => {
@@ -186,7 +195,7 @@ export class CUDATensor {
 
 		return result;
 	}
-	exp() {
+	exp(options = {}) {
 		const resultPointer = kernel.symbols.exp_op(this.totalLength, this.#values);
 		const outBuffer = Deno.UnsafePointerView.getArrayBuffer(resultPointer, this.totalLength * 4);
 		const values = new Float32Array(outBuffer);
@@ -195,7 +204,8 @@ export class CUDATensor {
 			values,
 			shape: this.#shape,
 			children: [this],
-			op: `exp`
+			op: `exp`,
+			label: options.label
 		});
 
 		result[backward] = () => {
@@ -204,7 +214,7 @@ export class CUDATensor {
 
 		return result;
 	}
-	tanh() {
+	tanh(options = {}) {
 		const resultPointer = kernel.symbols.tanh_op(this.totalLength, this.#values);
 		const outBuffer = Deno.UnsafePointerView.getArrayBuffer(resultPointer, this.totalLength * 4);
 		const values = new Float32Array(outBuffer);
@@ -213,7 +223,8 @@ export class CUDATensor {
 			values,
 			shape: this.#shape,
 			children: [this],
-			op: `tanh`
+			op: `tanh`,
+			label: options.label
 		});
 
 		result[backward] = () => {
@@ -222,11 +233,11 @@ export class CUDATensor {
 
 		return result;
 	}
-	sum({ dimensionToReduce, keepDims }){
+	sum({ dimensionToReduce, keepDims = false, label }){
 		const outputLength = this.#shape.reduce((prod, x, idx) => {
 			return idx !== dimensionToReduce ? prod * x : prod;
 		}, 1);
-		const resultPointer = kernel.symbols.sum_op(new Int32Array(this.#shape).buffer, this.#shape.length, dimensionToReduce, this.#values.buffer);
+		const resultPointer = kernel.symbols.sum_op(new Int32Array(this.#shape).buffer, this.#shape.length, dimensionToReduce, this.#values);
 		const outBuffer = Deno.UnsafePointerView.getArrayBuffer(resultPointer, outputLength * 4);
 		const output = new Float32Array(outBuffer);
 
@@ -238,11 +249,12 @@ export class CUDATensor {
 			values: output,
 			shape: newShape,
 			children: [this],
-			op: "sum"
+			op: "sum",
+			label: label
 		});
 
 		result[backward] = () => {
-			kernel.symbols.subBackprop_op(new Int32Array(this.#shape).buffer, this.#shape.length,  dimensionToReduce, this.#gradient, result.gradient);
+			kernel.symbols.sumBackprop_op(new Int32Array(this.#shape).buffer, this.#shape.length,  dimensionToReduce, this.#gradient, result.gradient);
 		}
 
 		return result;
@@ -259,5 +271,29 @@ export class CUDATensor {
 	}
 	[Symbol.for("Deno.customInspect")]() {
 		return this.toString();
+	}
+
+	//statics
+	static filled(value, shape) {
+		return new CUDATensor({ values: new Float32Array(getTotalLength(shape)).fill(value), shape });
+	}
+	static random(shape, options = {}) {
+		const length = getTotalLength(shape);
+		const values = new Float32Array(length);
+		const generator = options.generator ?? getRandom(options.min, options.max, options.seed);
+		values.set(generator.take(length).toArray(), 0);
+		return new CUDATensor({ values, shape });
+	}
+	static getLinearSpace(start, end, steps) {
+		steps = steps - 1; //counting the spaces not the nodes
+		const length = end - start;
+		const partLength = length / steps;
+		const array = new Array(steps);
+		let current = start;
+		for (let i = 0; i <= steps; i++) {
+			array[i] = current;
+			current += partLength
+		}
+		return new CUDATensor({ values: array, shape: [array.length] });
 	}
 }
