@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+	<head></head>
+	<body>
+		<main>
+			<h1>GPU Tensor</h1>
+			<output id="out"></output>
+		</main>
+		<script>
+			const out = document.querySelector("#out");
+			const oldLog = console.log;
+			console.log = (...args) => {
+				out.textContent = args.toString();
+				oldLog(...args);
+			}
+		</script>
+		<script src="./gpu-tensor-webtest.js" type="module"></script>
+	</body>
+</html>

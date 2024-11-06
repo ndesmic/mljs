@@ -1,2 +1,6 @@
 .vscode
+dist
 temp
+notebooks
+data
+scripts

@@ -20,3 +20,25 @@ export function getDimensionalIndices(flatIndex, colMajorShape) {
 	}
 	return indices;
 }
+export function getTotalLength(shape) {
+	return shape.reduce((s, x) => s * x);
+}
+export function* range(end = 1, start = 0, step = 1){
+	for(let i = start; i < end; i += step){
+		yield i;
+	}
+}
+export function* getRandom(min = 0, max = 1, seed = undefined) {
+	const mod = 0x7fffffff;
+	
+	//seeds must be less than mod
+	seed = seed ?? Math.floor(Math.random() * (0x7fffffff - 1));
+	let state = seed % mod;
+
+	const length = (max - min) / mod;
+
+	while (true) {
+		state = (16807 * state) % mod;
+		yield (length * state) + min;
+	}
+}

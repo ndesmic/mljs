@@ -1,1 +1,13 @@
-{}
+{
+  "tasks": {
+    "build": "nvcc -o ./dist/kernel.dll --shared ./src/cuda/kernel.cu",
+    "test": "deno task build && deno test --allow-ffi",
+    "test:cuda": "deno task build && deno test --allow-ffi ./test/cuda-tensor.test.js",
+    "test:cpu": "deno test ./test/tensor.test.js",
+    "webtest": "deno run --allow-net --allow-read jsr:@std/http/file-server"
+  },
+  "imports": {
+    "@std/assert": "jsr:@std/assert@^1.0.6",
+    "@std/testing": "jsr:@std/testing@^1.0.3"
+  }
+}
