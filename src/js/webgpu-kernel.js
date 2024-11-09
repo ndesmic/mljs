@@ -174,7 +174,7 @@ const addOp = {
 			){
 				let idx = global_id.x;
 
-				if(global_id.x < arrayLength(&valuesA)) {
+				if global_id.x < arrayLength(&valuesA) {
 					output[idx] = valuesA[idx] + valuesB[idx];
 				}
 			}
@@ -210,7 +210,7 @@ const addOp = {
 			){
 				let idx = global_id.x;
 
-				if(global_id.x < arrayLength(&gradA)) { //buffers are the same size so pick one
+				if global_id.x < arrayLength(&gradA) { //buffers are the same size so pick one
 					gradAOut[idx] = gradA[idx] + gradResult[idx];
 					gradBOut[idx] = gradB[idx] + gradResult[idx];
 				}
@@ -242,7 +242,7 @@ const subOp = {
 			){
 				let idx = global_id.x;
 
-				if(global_id.x < arrayLength(&valuesA)) {
+				if global_id.x < arrayLength(&valuesA) {
 					output[idx] = valuesA[idx] - valuesB[idx];
 				}
 			}
@@ -278,7 +278,7 @@ const subOp = {
 			){
 				let idx = global_id.x;
 
-				if(global_id.x < arrayLength(&gradA)) { //buffers are the same size so pick one
+				if global_id.x < arrayLength(&gradA) { //buffers are the same size so pick one
 					gradAOut[idx] = gradA[idx] + gradResult[idx];
 					gradBOut[idx] = gradB[idx] - gradResult[idx];
 				}
@@ -310,7 +310,7 @@ const mulOp = {
 			){
 				let idx = global_id.x;
 
-				if(global_id.x < arrayLength(&valuesA)) {
+				if global_id.x < arrayLength(&valuesA) {
 					output[idx] = valuesA[idx] * valuesB[idx];
 				}
 			}
@@ -354,7 +354,7 @@ const mulOp = {
 			){
 				let idx = global_id.x;
 
-				if(global_id.x < arrayLength(&gradA)) { //buffers are the same size so pick one
+				if global_id.x < arrayLength(&gradA) { //buffers are the same size so pick one
 					gradAOut[idx] = gradA[idx] + valuesB[idx] * gradResult[idx];
 					gradBOut[idx] = gradB[idx] + valuesA[idx] * gradResult[idx];
 				}
@@ -386,7 +386,7 @@ const divOp = {
 			){
 				let idx = global_id.x;
 
-				if(idx < arrayLength(&valuesA)) {
+				if idx < arrayLength(&valuesA) {
 					
 					output[idx] = valuesA[idx] / valuesB[idx];
 				}
@@ -431,7 +431,7 @@ const divOp = {
 			){
 				let idx = global_id.x;
 
-				if(idx < arrayLength(&gradA)) { //buffers are the same size so pick one
+				if idx < arrayLength(&gradA) { //buffers are the same size so pick one
 					gradAOut[idx] = gradA[idx] + (1 / valuesB[idx] * gradResult[idx]);
 					gradBOut[idx] = gradB[idx] + -1 * valuesA[idx] / pow(valuesB[idx], 2.0f) * gradResult[idx];
 				}
@@ -463,7 +463,7 @@ const powOp = {
 			){
 				let idx = global_id.x;
 
-				if(idx < arrayLength(&valuesA)) {
+				if idx < arrayLength(&valuesA) {
 					output[idx] = pow(valuesA[idx], valuesB[idx]);
 				}
 			}
@@ -507,7 +507,7 @@ const powOp = {
 			){
 				let idx = global_id.x;
 
-				if(idx < arrayLength(&gradA)) { //buffers are the same size so pick one
+				if idx < arrayLength(&gradA) { //buffers are the same size so pick one
 					gradAOut[idx] = valuesB[idx] * pow(valuesA[idx], valuesB[idx] - 1) * gradResult[idx];
 					gradBOut[idx] = log(valuesA[idx]) * pow(valuesA[idx], valuesB[idx]) * gradResult[idx];
 				}
@@ -535,7 +535,7 @@ const negOp = {
 			){
 				let idx = global_id.x;
 
-				if(idx < arrayLength(&input)) {
+				if idx < arrayLength(&input) {
 					output[idx] = -input[idx];
 				}
 			}
@@ -559,7 +559,7 @@ const negOp = {
 			){
 				let idx = global_id.x;
 
-				if(idx < arrayLength(&input)) {
+				if idx < arrayLength(&input) {
 					output[idx] = -input[idx];
 				}
 			}
@@ -586,7 +586,7 @@ const expOp = {
 			){
 				let idx = global_id.x;
 
-				if(idx < arrayLength(&input)) {
+				if idx < arrayLength(&input) {
 					output[idx] = exp(input[idx]);
 				}
 			}
@@ -618,7 +618,7 @@ const expOp = {
 			){
 				let idx = global_id.x;
 
-				if(idx < arrayLength(&grad)) {
+				if idx < arrayLength(&grad) {
 					gradOut[idx] = grad[idx] + exp(values[idx]) * gradResult[idx];
 				}
 			}
@@ -645,7 +645,7 @@ const tanhOp = {
 			){
 				let idx = global_id.x;
 
-				if(global_id.x < arrayLength(&input)) {
+				if global_id.x < arrayLength(&input) {
 					output[idx] = tanh(input[idx]);
 				}
 			}
@@ -677,14 +677,9 @@ const tanhOp = {
 			){
 				let idx = global_id.x;
 
-				if global_id.x < arrayLength(&grad) {
-					let tanh_x = tanh(values[idx]);
-					let pow_two = tanh_x * tanh_x;
-					let one_minus_pow = 1 - pow_two;
-					gradOut[idx] = grad[idx] + (1 - one_minus_pow) * gradResult[idx];
+				if idx < arrayLength(&grad) {
+					gradOut[idx] = grad[idx] + (1 - pow(tanh(values[idx]), 2.0)) * gradResult[idx];
 				}
-				
-				
 			}`
 	}
 }

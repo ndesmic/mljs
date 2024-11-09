@@ -206,29 +206,29 @@ describe("WGPUTensor", () => {
 			assertArrayAlmostEquals(t1.gradient, new Float32Array([Math.exp(1), Math.exp(2), Math.exp(3), Math.exp(4)]));
 		});
 	});
-	// describe("hyperbolic tangent", () => {
-	// 	it("should forward pass", async () => {
-	// 		const t1 = new WGPUTensor({ shape: [2, 2], values: [1, 2, 3, 4], device });
-	// 		const result = await t1.tanh();
+	describe("hyperbolic tangent", () => {
+		it("should forward pass", async () => {
+			const t1 = new WGPUTensor({ shape: [2, 2], values: [1, 2, 3, 4], device });
+			const result = await t1.tanh();
 
-	// 		assertEquals(result.shape, [2, 2]);
-	// 		assertArrayAlmostEquals(result.values, new Float32Array([Math.tanh(1), Math.tanh(2), Math.tanh(3), Math.tanh(4)]));
-	// 	});
-		// it("should backprop", async () => {
-		// 	const t1 = new WGPUTensor({ shape: [2, 2], values: [1, 2, 3, 4], device });
-		// 	const result = await t1.tanh();
+			assertEquals(result.shape, [2, 2]);
+			assertArrayAlmostEquals(result.values, new Float32Array([Math.tanh(1), Math.tanh(2), Math.tanh(3), Math.tanh(4)]));
+		});
+		it("should backprop", async () => {
+			const t1 = new WGPUTensor({ shape: [2, 2], values: [1, 2, 3, 4], device });
+			const result = await t1.tanh();
 
-		// 	assertArrayAlmostEquals(result.values, new Float32Array([Math.tanh(1), Math.tanh(2), Math.tanh(3), Math.tanh(4)]));
-		// 	await result.backward();
-		// 	assertArrayAlmostEquals(result.gradient, new Float32Array([1, 1, 1, 1]));
-		// 	assertArrayAlmostEquals(t1.gradient, new Float32Array([
-		// 		1 - Math.tanh(1) ** 2,
-		// 		1 - Math.tanh(2) ** 2,
-		// 		1 - Math.tanh(3) ** 2,
-		// 		1 - Math.tanh(4) ** 2
-		// 	]));
-		// });
-	//});
+			assertArrayAlmostEquals(result.values, new Float32Array([Math.tanh(1), Math.tanh(2), Math.tanh(3), Math.tanh(4)]));
+			await result.backward();
+			assertArrayAlmostEquals(result.gradient, new Float32Array([1, 1, 1, 1]));
+			assertArrayAlmostEquals(t1.gradient, new Float32Array([
+				1 - Math.tanh(1) ** 2,
+				1 - Math.tanh(2) ** 2,
+				1 - Math.tanh(3) ** 2,
+				1 - Math.tanh(4) ** 2
+			]), 1e-7);
+		});
+	});
 	// describe("sum", () => {
 	// 	it("should sum a 4x3 across rows", () => {
 	// 		const tensor = new Tensor({
