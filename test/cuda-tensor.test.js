@@ -5,227 +5,222 @@ import { assertArrayAlmostEquals } from "./test-utils.js";
 import { getRandom } from "../src/js/tensor-utils.js";
 
 describe("CUDATensor", () => {
-	// describe("add", () => {
-	// 	it("should forward pass", () => {
-	// 		const t1 = new CUDATensor({ shape: [2, 2], values: [1, 2, 3, 4] });
-	// 		const t2 = new CUDATensor({ shape: [2, 2], values: [5, 6, 7, 8] });
-	// 		const result = t1.add(t2);
+	describe("add", () => {
+		it("should forward pass", () => {
+			const t1 = new CUDATensor({ shape: [2, 2], values: [1, 2, 3, 4] });
+			const t2 = new CUDATensor({ shape: [2, 2], values: [5, 6, 7, 8] });
+			const result = t1.add(t2);
 
-	// 		assertEquals(result.shape, [2, 2]);
-	// 		assertArrayAlmostEquals(result.values, new Float32Array([6, 8, 10, 12]));
-	// 	});
-	// 	it("should backprop", () => {
-	// 		const t1 = new CUDATensor({ shape: [2, 2], values: [1, 2, 3, 4] });
-	// 		const t2 = new CUDATensor({ shape: [2, 2], values: [5, 6, 7, 8] });
-	// 		const result = t1.add(t2);
+			assertEquals(result.shape, [2, 2]);
+			assertArrayAlmostEquals(result.values, new Float32Array([6, 8, 10, 12]));
+		});
+		it("should backprop", () => {
+			const t1 = new CUDATensor({ shape: [2, 2], values: [1, 2, 3, 4] });
+			const t2 = new CUDATensor({ shape: [2, 2], values: [5, 6, 7, 8] });
+			const result = t1.add(t2);
 
-	// 		assertArrayAlmostEquals(result.values, new Float32Array([6, 8, 10, 12]));
-	// 		result.backward();
-	// 		assertArrayAlmostEquals(result.gradient, new Float32Array([1, 1, 1, 1]));
-	// 		assertArrayAlmostEquals(t1.gradient, new Float32Array([1, 1, 1, 1]));
-	// 		assertArrayAlmostEquals(t2.gradient, new Float32Array([1, 1, 1, 1]));
-	// 	});
-	// 	it("should allow same node", () => {
-	// 		const t1 = new CUDATensor({ shape: [2, 2], values: [1, 2, 3, 4] });
-	// 		const result = t1.add(t1);
+			assertArrayAlmostEquals(result.values, new Float32Array([6, 8, 10, 12]));
+			result.backward();
+			assertArrayAlmostEquals(result.gradient, new Float32Array([1, 1, 1, 1]));
+			assertArrayAlmostEquals(t1.gradient, new Float32Array([1, 1, 1, 1]));
+			assertArrayAlmostEquals(t2.gradient, new Float32Array([1, 1, 1, 1]));
+		});
+		it("should allow same node", () => {
+			const t1 = new CUDATensor({ shape: [2, 2], values: [1, 2, 3, 4] });
+			const result = t1.add(t1);
 
-	// 		assertArrayAlmostEquals(result.values, new Float32Array([2, 4, 6, 8]));
-	// 		result.backward();
-	// 		assertArrayAlmostEquals(result.gradient, new Float32Array([1, 1, 1, 1]));
-	// 		assertArrayAlmostEquals(t1.gradient, new Float32Array([2, 2, 2, 2]));
-	// 	});
-	// });
-	// describe("subtract", () => {
-	// 	it("should forward pass", () => {
-	// 		const t1 = new CUDATensor({ shape: [2, 2], values: [11, 22, 33, 44] });
-	// 		const t2 = new CUDATensor({ shape: [2, 2], values: [5, 6, 7, 8] })
-	// 		const result = t1.sub(t2);
+			assertArrayAlmostEquals(result.values, new Float32Array([2, 4, 6, 8]));
+			result.backward();
+			assertArrayAlmostEquals(result.gradient, new Float32Array([1, 1, 1, 1]));
+			assertArrayAlmostEquals(t1.gradient, new Float32Array([2, 2, 2, 2]));
+		});
+	});
+	describe("subtract", () => {
+		it("should forward pass", () => {
+			const t1 = new CUDATensor({ shape: [2, 2], values: [11, 22, 33, 44] });
+			const t2 = new CUDATensor({ shape: [2, 2], values: [5, 6, 7, 8] })
+			const result = t1.sub(t2);
 
-	// 		assertEquals(result.shape, [2, 2]);
-	// 		assertArrayAlmostEquals(result.values, new Float32Array([6, 16, 26, 36]));
-	// 	});
-	// 	it("should backprop", () => {
-	// 		const t1 = new CUDATensor({ shape: [2, 2], values: [11, 22, 33, 44] });
-	// 		const t2 = new CUDATensor({ shape: [2, 2], values: [5, 6, 7, 8] });
-	// 		const result = t1.sub(t2);
+			assertEquals(result.shape, [2, 2]);
+			assertArrayAlmostEquals(result.values, new Float32Array([6, 16, 26, 36]));
+		});
+		it("should backprop", () => {
+			const t1 = new CUDATensor({ shape: [2, 2], values: [11, 22, 33, 44] });
+			const t2 = new CUDATensor({ shape: [2, 2], values: [5, 6, 7, 8] });
+			const result = t1.sub(t2);
 
-	// 		assertArrayAlmostEquals(result.values, new Float32Array([6, 16, 26, 36]));
-	// 		result.backward();
-	// 		assertArrayAlmostEquals(result.gradient, new Float32Array([1, 1, 1, 1]));
-	// 		assertArrayAlmostEquals(t1.gradient, new Float32Array([1, 1, 1, 1]));
-	// 		assertArrayAlmostEquals(t2.gradient, new Float32Array([-1, -1, -1, -1]));
-	// 	});
-	// 	it("should allow same node", () => {
-	// 		const tensor = new CUDATensor({ shape: [2, 2], values: [11, 22, 33, 44] });
-	// 		const result = tensor.sub(tensor);
+			assertArrayAlmostEquals(result.values, new Float32Array([6, 16, 26, 36]));
+			result.backward();
+			assertArrayAlmostEquals(result.gradient, new Float32Array([1, 1, 1, 1]));
+			assertArrayAlmostEquals(t1.gradient, new Float32Array([1, 1, 1, 1]));
+			assertArrayAlmostEquals(t2.gradient, new Float32Array([-1, -1, -1, -1]));
+		});
+		it("should allow same node", () => {
+			const tensor = new CUDATensor({ shape: [2, 2], values: [11, 22, 33, 44] });
+			const result = tensor.sub(tensor);
 
-	// 		assertArrayAlmostEquals(result.values, new Float32Array([0, 0, 0, 0]));
-	// 		result.backward();
-	// 		assertArrayAlmostEquals(result.gradient, new Float32Array([1, 1, 1, 1]));
-	// 		assertArrayAlmostEquals(tensor.gradient, new Float32Array([0, 0, 0, 0]));
-	// 	});
-	// });
-	// describe("multiply", () => {
-	// 	it("should forward pass", () => {
-	// 		const t1 = new CUDATensor({ shape: [2, 2], values: [1, 2, 3, 4] });
-	// 		const t2 = new CUDATensor({ shape: [2, 2], values: [5, 6, 7, 8] });
-	// 		const result = t1.mul(t2);
+			assertArrayAlmostEquals(result.values, new Float32Array([0, 0, 0, 0]));
+			result.backward();
+			assertArrayAlmostEquals(result.gradient, new Float32Array([1, 1, 1, 1]));
+			assertArrayAlmostEquals(tensor.gradient, new Float32Array([0, 0, 0, 0]));
+		});
+	});
+	describe("multiply", () => {
+		it("should forward pass", () => {
+			const t1 = new CUDATensor({ shape: [2, 2], values: [1, 2, 3, 4] });
+			const t2 = new CUDATensor({ shape: [2, 2], values: [5, 6, 7, 8] });
+			const result = t1.mul(t2);
 
-	// 		assertEquals(result.shape, [2, 2]);
-	// 		assertArrayAlmostEquals(result.values, new Float32Array([5, 12, 21, 32]));
-	// 	});
-	// 	it("should backprop", () => {
-	// 		const t1 = new CUDATensor({ shape: [2, 2], values: [1, 2, 3, 4] });
-	// 		const t2 = new CUDATensor({ shape: [2, 2], values: [5, 6, 7, 8] });
-	// 		const result = t1.mul(t2);
+			assertEquals(result.shape, [2, 2]);
+			assertArrayAlmostEquals(result.values, new Float32Array([5, 12, 21, 32]));
+		});
+		it("should backprop", () => {
+			const t1 = new CUDATensor({ shape: [2, 2], values: [1, 2, 3, 4] });
+			const t2 = new CUDATensor({ shape: [2, 2], values: [5, 6, 7, 8] });
+			const result = t1.mul(t2);
 
-	// 		assertEquals(result.values, new Float32Array([5, 12, 21, 32]));
-	// 		result.backward();
-	// 		assertArrayAlmostEquals(result.gradient, new Float32Array([1, 1, 1, 1]));
-	// 		assertArrayAlmostEquals(t1.gradient, new Float32Array([5, 6, 7, 8]));
-	// 		assertArrayAlmostEquals(t2.gradient, new Float32Array([1, 2, 3, 4]));
-	// 	});
-	// 	it("should allow same node", () => {
-	// 		const t1 = new CUDATensor({ shape: [2, 2], values: [1, 2, 3, 4] });
-	// 		const result = t1.mul(t1);
+			assertEquals(result.values, new Float32Array([5, 12, 21, 32]));
+			result.backward();
+			assertArrayAlmostEquals(result.gradient, new Float32Array([1, 1, 1, 1]));
+			assertArrayAlmostEquals(t1.gradient, new Float32Array([5, 6, 7, 8]));
+			assertArrayAlmostEquals(t2.gradient, new Float32Array([1, 2, 3, 4]));
+		});
+		it("should allow same node", () => {
+			const t1 = new CUDATensor({ shape: [2, 2], values: [1, 2, 3, 4] });
+			const result = t1.mul(t1);
 
-	// 		assertEquals(result.shape, [2, 2]);
-	// 		assertArrayAlmostEquals(result.values, new Float32Array([1, 4, 9, 16]));
-	// 		result.backward();
-	// 		assertArrayAlmostEquals(result.gradient, new Float32Array([1, 1, 1, 1]));
-	// 		assertArrayAlmostEquals(t1.gradient, new Float32Array([2, 4, 6, 8]));
-	// 	});
-	// });
-	// describe("divide", () => {
-	// 	it("should forward pass", () => {
-	// 		const t1 = new CUDATensor({ shape: [2, 2], values: [10, 24, 21, 4] });
-	// 		const t2 = new CUDATensor({ shape: [2, 2], values: [5, 6, 7, 8] })
-	// 		const result = t1.div(t2);
+			assertEquals(result.shape, [2, 2]);
+			assertArrayAlmostEquals(result.values, new Float32Array([1, 4, 9, 16]));
+			result.backward();
+			assertArrayAlmostEquals(result.gradient, new Float32Array([1, 1, 1, 1]));
+			assertArrayAlmostEquals(t1.gradient, new Float32Array([2, 4, 6, 8]));
+		});
+	});
+	describe("divide", () => {
+		it("should forward pass", () => {
+			const t1 = new CUDATensor({ shape: [2, 2], values: [10, 24, 21, 4] });
+			const t2 = new CUDATensor({ shape: [2, 2], values: [5, 6, 7, 8] })
+			const result = t1.div(t2);
 
-	// 		assertEquals(result.shape, [2, 2]);
-	// 		assertArrayAlmostEquals(result.values, new Float32Array([2, 4, 3, 0.5]));
-	// 	});
-	// 	it("should backprop", () => {
-	// 		const t1 = new CUDATensor({ shape: [2, 2], values: [10, 24, 21, 4] });
-	// 		const t2 = new CUDATensor({ shape: [2, 2], values: [5, 6, 7, 8] })
-	// 		const result = t1.div(t2);
+			assertEquals(result.shape, [2, 2]);
+			assertArrayAlmostEquals(result.values, new Float32Array([2, 4, 3, 0.5]));
+		});
+		it("should backprop", () => {
+			const t1 = new CUDATensor({ shape: [2, 2], values: [10, 24, 21, 4] });
+			const t2 = new CUDATensor({ shape: [2, 2], values: [5, 6, 7, 8] })
+			const result = t1.div(t2);
 
-	// 		assertArrayAlmostEquals(result.values, new Float32Array([2, 4, 3, 0.5]));
-	// 		result.backward();
-	// 		assertArrayAlmostEquals(result.gradient, new Float32Array([1, 1, 1, 1]));
-	// 		assertArrayAlmostEquals(t1.gradient, new Float32Array([1 / 5, 1 / 6, 1 / 7, 1 / 8]));
-	// 		assertArrayAlmostEquals(t2.gradient, new Float32Array([-10 / 5 ** 2, -24 / 6 ** 2, -21 / 7 ** 2, -4 / 8 ** 2]));
-	// 	});
-	// 	it("should allow same node", () => {
-	// 		const t1 = new CUDATensor({ shape: [2, 2], values: [10, 24, 21, 4] });
-	// 		const result = t1.div(t1);
+			assertArrayAlmostEquals(result.values, new Float32Array([2, 4, 3, 0.5]));
+			result.backward();
+			assertArrayAlmostEquals(result.gradient, new Float32Array([1, 1, 1, 1]));
+			assertArrayAlmostEquals(t1.gradient, new Float32Array([1 / 5, 1 / 6, 1 / 7, 1 / 8]));
+			assertArrayAlmostEquals(t2.gradient, new Float32Array([-10 / 5 ** 2, -24 / 6 ** 2, -21 / 7 ** 2, -4 / 8 ** 2]));
+		});
+		it("should allow same node", () => {
+			const t1 = new CUDATensor({ shape: [2, 2], values: [10, 24, 21, 4] });
+			const result = t1.div(t1);
 
-	// 		assertEquals(result.shape, [2, 2]);
-	// 		assertArrayAlmostEquals(result.values, new Float32Array([1, 1, 1, 1]));
-	// 		result.backward();
-	// 		assertArrayAlmostEquals(result.gradient, new Float32Array([1, 1, 1, 1]));
-	// 		assertArrayAlmostEquals(t1.gradient, new Float32Array([
-	// 			0,
-	// 			0,
-	// 			0,
-	// 			0
-	// 		]));
-	// 	});
-	// });
-	// describe("power", () => {
-	// 	it("should forward pass", () => {
-	// 		const t1 = new CUDATensor({ shape: [2, 2], values: [2, 2, 2, 2] });
-	// 		const t2 = new CUDATensor({ shape: [2, 2], values: [1, 2, 3, 4] });
-	// 		const result = t1.pow(t2);
+			assertEquals(result.shape, [2, 2]);
+			assertArrayAlmostEquals(result.values, new Float32Array([1, 1, 1, 1]));
+			result.backward();
+			assertArrayAlmostEquals(result.gradient, new Float32Array([1, 1, 1, 1]));
+			assertArrayAlmostEquals(t1.gradient, new Float32Array([0, 0, 0, 0]));
+		});
+	});
+	describe("power", () => {
+		it("should forward pass", () => {
+			const t1 = new CUDATensor({ shape: [2, 2], values: [2, 2, 2, 2] });
+			const t2 = new CUDATensor({ shape: [2, 2], values: [1, 2, 3, 4] });
+			const result = t1.pow(t2);
 
-	// 		assertEquals(result.shape, [2, 2]);
-	// 		assertArrayAlmostEquals(result.values, new Float32Array([2, 4, 8, 16]));
-	// 	});
-	// 	it("should backprop", () => {
-	// 		const t1 = new CUDATensor({ shape: [2, 2], values: [2, 2, 2, 2] });
-	// 		const t2 = new CUDATensor({ shape: [2, 2], values: [1, 2, 3, 4] });
-	// 		const result = t1.pow(t2);
+			assertEquals(result.shape, [2, 2]);
+			assertArrayAlmostEquals(result.values, new Float32Array([2, 4, 8, 16]));
+		});
+		it("should backprop", () => {
+			const t1 = new CUDATensor({ shape: [2, 2], values: [2, 2, 2, 2] });
+			const t2 = new CUDATensor({ shape: [2, 2], values: [1, 2, 3, 4] });
+			const result = t1.pow(t2);
 
-	// 		assertArrayAlmostEquals(result.values, new Float32Array([2, 4, 8, 16]));
-	// 		result.backward();
-	// 		assertArrayAlmostEquals(result.gradient, new Float32Array([1, 1, 1, 1]));
-	// 		assertArrayAlmostEquals(t1.gradient, new Float32Array([1, 4, 12, 32]));
-	// 		assertArrayAlmostEquals(t2.gradient, new Float32Array([
-	// 			Math.log(2) * 2 ** 1,
-	// 			Math.log(2) * 2 ** 2,
-	// 			Math.log(2) * 2 ** 3,
-	// 			Math.log(2) * 2 ** 4
-	// 		]));
-	// 	});
-	// 	it("should allow same node", () => {
-	// 		const t1 = new CUDATensor({ shape: [2, 2], values: [1, 2, 3, 4] });
-	// 		const result = t1.pow(t1);
+			assertArrayAlmostEquals(result.values, new Float32Array([2, 4, 8, 16]));
+			result.backward();
+			assertArrayAlmostEquals(result.gradient, new Float32Array([1, 1, 1, 1]));
+			assertArrayAlmostEquals(t1.gradient, new Float32Array([1, 4, 12, 32]));
+			assertArrayAlmostEquals(t2.gradient, new Float32Array([
+				Math.log(2) * 2 ** 1,
+				Math.log(2) * 2 ** 2,
+				Math.log(2) * 2 ** 3,
+				Math.log(2) * 2 ** 4
+			]));
+		});
+		it("should allow same node", () => {
+			const t1 = new CUDATensor({ shape: [2, 2], values: [1, 2, 3, 4] });
+			const result = t1.pow(t1);
 
-	// 		assertEquals(result.values, new Float32Array([1, 4, 27, 256]));
-	// 		result.backward();
-	// 		assertArrayAlmostEquals(result.gradient, new Float32Array([1, 1, 1, 1]));
-	// 		assertArrayAlmostEquals(t1.gradient, new Float32Array([1.0000, 6.7726, 56.6625, 610.8914]), 1e-4);
-	// 	});
-	// });
-	// describe("negate", () => {
-	// 	it("should forward pass", () => {
-	// 		const t1 = new CUDATensor({ shape: [2, 2], values: [10, 24, 21, 4] });
-	// 		const result = t1.neg();
+			assertEquals(result.values, new Float32Array([1, 4, 27, 256]));
+			result.backward();
+			assertArrayAlmostEquals(result.gradient, new Float32Array([1, 1, 1, 1]));
+			assertArrayAlmostEquals(t1.gradient, new Float32Array([1.0000, 6.7726, 56.6625, 610.8914]), 1e-4);
+		});
+	});
+	describe("negate", () => {
+		it("should forward pass", () => {
+			const t1 = new CUDATensor({ shape: [2, 2], values: [10, 24, 21, 4] });
+			const result = t1.neg();
 
-	// 		assertEquals(result.shape, [2, 2]);
-	// 		assertArrayAlmostEquals(result.values, new Float32Array([-10, -24, -21, -4]));
-	// 	});
-	// 	it("should backprop", () => {
-	// 		const t1 = new CUDATensor({ shape: [2, 2], values: [10, 24, 21, 4] });
-	// 		const result = t1.neg();
+			assertEquals(result.shape, [2, 2]);
+			assertArrayAlmostEquals(result.values, new Float32Array([-10, -24, -21, -4]));
+		});
+		it("should backprop", () => {
+			const t1 = new CUDATensor({ shape: [2, 2], values: [10, 24, 21, 4] });
+			const result = t1.neg();
 
-	// 		assertEquals(result.values, new Float32Array([-10, -24, -21, -4]));
-	// 		result.backward();
-	// 		assertArrayAlmostEquals(result.gradient, new Float32Array([1, 1, 1, 1]));
-	// 		assertArrayAlmostEquals(t1.gradient, new Float32Array([-1, -1, -1, -1]));
-	// 	});
-	// });
-	// describe("exponential", () => {
-	// 	it("should forward pass", () => {
-	// 		const t1 = new CUDATensor({ shape: [2, 2], values: [1, 2, 3, 4] });
-	// 		const result = t1.exp();
+			assertEquals(result.values, new Float32Array([-10, -24, -21, -4]));
+			result.backward();
+			assertArrayAlmostEquals(result.gradient, new Float32Array([1, 1, 1, 1]));
+			assertArrayAlmostEquals(t1.gradient, new Float32Array([-1, -1, -1, -1]));
+		});
+	});
+	describe("exponential", () => {
+		it("should forward pass", () => {
+			const t1 = new CUDATensor({ shape: [2, 2], values: [1, 2, 3, 4] });
+			const result = t1.exp();
 
-	// 		assertEquals(result.shape, [2, 2]);
-	// 		assertArrayAlmostEquals(result.values, new Float32Array([Math.exp(1), Math.exp(2), Math.exp(3), Math.exp(4)]));
-	// 	});
-	// 	it("should backprop", () => {
-	// 		const t1 = new CUDATensor({ shape: [2, 2], values: [1, 2, 3, 4] });
-	// 		const result = t1.exp();
+			assertEquals(result.shape, [2, 2]);
+			assertArrayAlmostEquals(result.values, new Float32Array([Math.exp(1), Math.exp(2), Math.exp(3), Math.exp(4)]));
+		});
+		it("should backprop", () => {
+			const t1 = new CUDATensor({ shape: [2, 2], values: [1, 2, 3, 4] });
+			const result = t1.exp();
 
-	// 		assertEquals(result.values, new Float32Array([Math.exp(1), Math.exp(2), Math.exp(3), Math.exp(4)]));
-	// 		result.backward();
-	// 		assertArrayAlmostEquals(result.gradient, new Float32Array([1, 1, 1, 1]));
-	// 		assertArrayAlmostEquals(t1.gradient, new Float32Array([Math.exp(1), Math.exp(2), Math.exp(3), Math.exp(4)]));
-	// 	});
-	// });
-	// describe("hyperbolic tangent", () => {
-	// 	it("should forward pass", () => {
-	// 		const t1 = new CUDATensor({ shape: [2, 2], values: [1, 2, 3, 4] });
-	// 		const result = t1.tanh();
+			assertEquals(result.values, new Float32Array([Math.exp(1), Math.exp(2), Math.exp(3), Math.exp(4)]));
+			result.backward();
+			assertArrayAlmostEquals(result.gradient, new Float32Array([1, 1, 1, 1]));
+			assertArrayAlmostEquals(t1.gradient, new Float32Array([Math.exp(1), Math.exp(2), Math.exp(3), Math.exp(4)]));
+		});
+	});
+	describe("hyperbolic tangent", () => {
+		it("should forward pass", () => {
+			const t1 = new CUDATensor({ shape: [2, 2], values: [1, 2, 3, 4] });
+			const result = t1.tanh();
 
-	// 		assertEquals(result.shape, [2, 2]);
-	// 		assertArrayAlmostEquals(result.values, new Float32Array([Math.tanh(1), Math.tanh(2), Math.tanh(3), Math.tanh(4)]), 1e-4);
-	// 	});
-	// 	it("should backprop", () => {
-	// 		const t1 = new CUDATensor({ shape: [2, 2], values: [1, 2, 3, 4] });
-	// 		const result = t1.tanh();
+			assertEquals(result.shape, [2, 2]);
+			assertArrayAlmostEquals(result.values, new Float32Array([Math.tanh(1), Math.tanh(2), Math.tanh(3), Math.tanh(4)]), 1e-4);
+		});
+		it("should backprop", () => {
+			const t1 = new CUDATensor({ shape: [2, 2], values: [1, 2, 3, 4] });
+			const result = t1.tanh();
 
-	// 		assertArrayAlmostEquals(result.values, new Float32Array([Math.tanh(1), Math.tanh(2), Math.tanh(3), Math.tanh(4)]), 1e-4);
-	// 		result.backward();
-	// 		assertArrayAlmostEquals(result.gradient, new Float32Array([1, 1, 1, 1]));
-	// 		assertArrayAlmostEquals(t1.gradient, new Float32Array([
-	// 			1 - Math.tanh(1) ** 2,
-	// 			1 - Math.tanh(2) ** 2,
-	// 			1 - Math.tanh(3) ** 2,
-	// 			1 - Math.tanh(4) ** 2
-	// 		]), 1e-4);
-	// 	});
-	// });
+			assertArrayAlmostEquals(result.values, new Float32Array([Math.tanh(1), Math.tanh(2), Math.tanh(3), Math.tanh(4)]), 1e-4);
+			result.backward();
+			assertArrayAlmostEquals(result.gradient, new Float32Array([1, 1, 1, 1]));
+			assertArrayAlmostEquals(t1.gradient, new Float32Array([
+				1 - Math.tanh(1) ** 2,
+				1 - Math.tanh(2) ** 2,
+				1 - Math.tanh(3) ** 2,
+				1 - Math.tanh(4) ** 2
+			]), 1e-4);
+		});
+	});
 	describe("sum", () => {
 		it("should sum a 4x3 across rows", () => {
 			const tensor = new CUDATensor({
