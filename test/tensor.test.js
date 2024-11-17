@@ -1,8 +1,8 @@
-import { assertEquals, assertAlmostEquals } from "@std/assert";
+import { assertEquals } from "@std/assert";
+import { describe, it } from "@std/testing/bdd";
 import { getRandom } from "../src/js/tensor-utils.js";
 import { Tensor } from "../src/js/tensor.js";
 import { assertArrayAlmostEquals } from "./test-utils.js";
-import { describe, it } from "@std/testing/bdd";
 
 describe("Tensor", () => {
 	describe("add", () => {
@@ -124,12 +124,7 @@ describe("Tensor", () => {
 			assertArrayAlmostEquals(result.values, new Float32Array([1, 1, 1, 1]));
 			result.backward();
 			assertArrayAlmostEquals(result.gradient, new Float32Array([1, 1, 1, 1]));
-			assertArrayAlmostEquals(t1.gradient, new Float32Array([ //These are actually zero but dealing with precision loss
-				1.4901161415892261e-9,
-				1.2417634698280722e-9,
-				8.869738832295582e-10,
-				0
-			]));
+			assertArrayAlmostEquals(t1.gradient, new Float32Array([0, 0, 0, 0]), 1e-7);
 		});
 	});
 	describe("power", () => {

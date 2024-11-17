@@ -42,3 +42,7 @@ export function* getRandom(min = 0, max = 1, seed = undefined) {
 		yield (length * state) + min;
 	}
 }
+
+export function roundToMultiple(num, multiple){
+	return Math.round(num / multiple) * multiple;
+}

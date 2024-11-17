@@ -3,6 +3,7 @@
     "build": "nvcc -o ./dist/kernel.dll --shared ./src/cuda/kernel.cu",
     "test": "deno task build && deno test --allow-ffi",
     "test:cuda": "deno task build && deno test --allow-ffi ./test/cuda-tensor.test.js",
+    "test:wgpu": "deno test ./test/wgpu-tensor.test.js",
     "test:cpu": "deno test ./test/tensor.test.js",
     "webtest": "deno run --allow-net --allow-read jsr:@std/http/file-server"
   },
