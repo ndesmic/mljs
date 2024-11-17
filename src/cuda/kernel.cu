@@ -39,9 +39,9 @@ __device__ int *removeAtIndex(const int *array, const int length, const int inde
     return outArray;
 }
 //shape is column major
-__device__ int* getDimensionalIndex(int flatIndex, const int shape[], const int shapeSize)
+__device__ int* getDimensionalIndices(int flatIndex, const int shape[], const int shapeSize)
 {
-    int* indices = (int*)malloc(sizeof(shape));
+    int* indices = (int*)malloc(sizeof(shapeSize));
     for(int i = 0; i < shapeSize; i++){
         indices[i] = flatIndex % shape[i];
         flatIndex = flatIndex / shape[i];
@@ -224,12 +224,12 @@ __global__ void sumKernel(const int* shape, const int shapeSize, const int dimTo
     if (idx < newSize)
     {
         int *newShape = removeAtIndex(shape, shapeSize, dimToReduce);
-        int *partialDimIndex = getDimensionalIndex(idx, shape, shapeSize - 1);
+        int *partialDimIndex = getDimensionalIndices(idx, newShape, shapeSize - 1);
 
         for(int i = 0; i < shape[dimToReduce]; i++){
             int* dimIndex = insertAtIndex(partialDimIndex, shapeSize - 1, dimToReduce, i);
             int flatIdx = getFlatIndex(dimIndex, shape, shapeSize);
-            output[idx] += values[getFlatIndex(dimIndex, shape, shapeSize)];
+            output[idx] += values[flatIdx];
             free(dimIndex);
         }
 
@@ -251,7 +251,7 @@ __global__ void sumBackpropKernel(const int *shape, const int shapeSize, const i
     if (idx < inSize)
     {
         int *outShape = removeAtIndex(shape, shapeSize, dimToReduce);
-        int *inDimIndex = getDimensionalIndex(idx, shape, shapeSize);
+        int *inDimIndex = getDimensionalIndices(idx, shape, shapeSize);
         int *outDimIndex = removeAtIndex(inDimIndex, shapeSize, dimToReduce);
         int outputFlatIdx = getFlatIndex(outDimIndex, outShape, shapeSize - 1);
 

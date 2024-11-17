@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html>
-	<head></head>
+	<head>
+		<style>
+			:root {
+				font-family: arial;
+			}
+			output {
+				white-space: pre;
+			}
+		</style>
+	</head>
 	<body>
 		<main>
 			<h1>GPU Tensor</h1>
@@ -10,10 +19,10 @@
 			const out = document.querySelector("#out");
 			const oldLog = console.log;
 			console.log = (...args) => {
-				out.textContent = args.toString();
+				out.textContent = out.textContent + args.map(a => a.toString()).join(", ") + "\n";
 				oldLog(...args);
 			}
 		</script>
-		<script src="./gpu-tensor-webtest.js" type="module"></script>
+		<script src="./wgpu-tensor.webtest.js" type="module"></script>
 	</body>
 </html>
