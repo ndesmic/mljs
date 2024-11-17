@@ -124,7 +124,7 @@ describe("Tensor", () => {
 			assertArrayAlmostEquals(result.values, new Float32Array([1, 1, 1, 1]));
 			result.backward();
 			assertArrayAlmostEquals(result.gradient, new Float32Array([1, 1, 1, 1]));
-			assertArrayAlmostEquals(t1.gradient, new Float32Array([0, 0, 0, 0]));
+			assertArrayAlmostEquals(t1.gradient, new Float32Array([0, 0, 0, 0]), 1e-7);
 		});
 	});
 	describe("power", () => {

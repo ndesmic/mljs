@@ -55,13 +55,6 @@ export class WGPUTensor {
 	get children() {
 		return this.#children;
 	}
-	async backward() {
-		this.#gradient = new Float32Array(this.totalLength).fill(1);
-		const sortedDependencies = topologicalSort(this, x => x.children).reverse();
-		for (const node of sortedDependencies) {
-			await node[backward]();
-		}
-	}
 	async add(other) {
 		if (other.totalLength != this.totalLength) throw new Error(`Tensor not the right length, argument was ${other.totalLength}, needs to be ${this.totalLength}`);
 
@@ -477,7 +470,13 @@ export class WGPUTensor {
 
 		return result;
 	}
-
+	async backward() {
+		this.#gradient = new Float32Array(this.totalLength).fill(1);
+		const sortedDependencies = topologicalSort(this, x => x.children).reverse();
+		for (const node of sortedDependencies) {
+			await node[backward]();
+		}
+	}
 	toString() {
 		return `<${this.#label ? `${this.#label}:` : ""}${Array.from(this.#values).join(", ")}>`;
 	}

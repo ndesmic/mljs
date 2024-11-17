@@ -903,14 +903,14 @@ const sumOp = {
 				let idx = global_id.x;
 				let shape_size = arrayLength(&shape);
 				
-				var new_size = 1u;
+				var out_size = 1u;
 				for(var j = 0u; j < shape_size; j++){
 					if(j != dim_to_reduce.value){
-						new_size *= shape[j];
+						out_size *= shape[j];
 					}
 				}
 
-				if idx < new_size {
+				if idx < out_size {
 					let base_ptr = idx * ((shape_size * 4) - 2); //manual calc :/ 
 					var mem_ptr = base_ptr;
 
@@ -920,12 +920,12 @@ const sumOp = {
 						mem_ptr++;
 					}
 
-					let new_shape_ptr = mem_ptr;
-					remove_at_index(shape_ptr, shape_size, new_shape_ptr, dim_to_reduce.value);
+					let out_shape_ptr = mem_ptr;
+					remove_at_index(shape_ptr, shape_size, out_shape_ptr, dim_to_reduce.value);
 					mem_ptr += shape_size - 1;
 
 					let partial_dim_index_ptr = mem_ptr;
-					get_dimensional_indices(idx, new_shape_ptr, shape_size - 1, partial_dim_index_ptr);
+					get_dimensional_indices(idx, out_shape_ptr, shape_size - 1, partial_dim_index_ptr);
 					mem_ptr += shape_size - 1;		
 
 					for(var i = 0u; i < shape[dim_to_reduce.value]; i++){
@@ -1036,19 +1036,19 @@ const sumOp = {
 						mem_ptr++;
 					}
 
-					let new_shape_ptr = mem_ptr;
-					remove_at_index(shape_ptr, shape_size, new_shape_ptr, dim_to_reduce.value);
+					let out_shape_ptr = mem_ptr;
+					remove_at_index(shape_ptr, shape_size, out_shape_ptr, dim_to_reduce.value);
 					mem_ptr += shape_size - 1;
 
-					let dim_index_ptr = mem_ptr;
-					get_dimensional_indices(idx, new_shape_ptr, shape_size, dim_index_ptr);
+					let in_dim_index_ptr = mem_ptr;
+					get_dimensional_indices(idx, shape_ptr, shape_size, in_dim_index_ptr);
 					mem_ptr += shape_size;
 
 					let out_dim_index_ptr = mem_ptr;
-					remove_at_index(dim_index_ptr, shape_size - 1, out_dim_index_ptr, dim_to_reduce.value);
+					remove_at_index(in_dim_index_ptr, shape_size, out_dim_index_ptr, dim_to_reduce.value);
 					mem_ptr += shape_size - 1;
 
-					let out_index = get_flat_index(out_dim_index_ptr, new_shape_ptr, shape_size - 1);
+					let out_index = get_flat_index(out_dim_index_ptr, out_shape_ptr, shape_size - 1);
 
 					grad_out[idx] = grad[idx] + grad_result[out_index];
 				}
