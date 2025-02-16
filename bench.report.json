@@ -1,0 +1,733 @@
+{
+  "version": 1,
+  "runtime": "Deno/2.0.6 x86_64-pc-windows-msvc",
+  "cpu": "Intel(R) Core(TM) i7-8700K CPU @ 3.70GHz",
+  "benches": [
+    {
+      "origin": "file:///D:/projects/ai/mljs/bench/perceptron.bench.js",
+      "group": "Perceptron 2x2",
+      "name": "CPU Perceptron 2x2",
+      "baseline": true,
+      "results": [
+        {
+          "ok": {
+            "n": 56412,
+            "min": 5800.0,
+            "max": 6855800.0,
+            "avg": 8865.0,
+            "p75": 7600.0,
+            "p99": 30600.0,
+            "p995": 42200.0,
+            "p999": 103400.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///D:/projects/ai/mljs/bench/perceptron.bench.js",
+      "group": "Perceptron 2x2",
+      "name": "CUDA Perceptron 2x2",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 241,
+            "min": 1637700.0,
+            "max": 6210900.0,
+            "avg": 2165386.0,
+            "p75": 2212600.0,
+            "p99": 5518600.0,
+            "p995": 5643700.0,
+            "p999": 6210900.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///D:/projects/ai/mljs/bench/perceptron.bench.js",
+      "group": "Perceptron 2x2",
+      "name": "WGPU Perceptron 2x2",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 16,
+            "min": 82793000.0,
+            "max": 95801900.0,
+            "avg": 92111463.0,
+            "p75": 94606300.0,
+            "p99": 95801900.0,
+            "p995": 95801900.0,
+            "p999": 95801900.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///D:/projects/ai/mljs/bench/perceptron.bench.js",
+      "group": "Perceptron 4x4",
+      "name": "CPU Perceptron 4x4",
+      "baseline": true,
+      "results": [
+        {
+          "ok": {
+            "n": 48355,
+            "min": 8100.0,
+            "max": 438600.0,
+            "avg": 10343.0,
+            "p75": 9600.0,
+            "p99": 29900.0,
+            "p995": 36800.0,
+            "p999": 77600.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///D:/projects/ai/mljs/bench/perceptron.bench.js",
+      "group": "Perceptron 4x4",
+      "name": "CUDA Perceptron 4x4",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 250,
+            "min": 1675300.0,
+            "max": 5588900.0,
+            "avg": 2098727.0,
+            "p75": 2176800.0,
+            "p99": 5428300.0,
+            "p995": 5476500.0,
+            "p999": 5588900.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///D:/projects/ai/mljs/bench/perceptron.bench.js",
+      "group": "Perceptron 4x4",
+      "name": "WGPU Perceptron 4x4",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 16,
+            "min": 71730800.0,
+            "max": 96746300.0,
+            "avg": 91285513.0,
+            "p75": 94556300.0,
+            "p99": 96746300.0,
+            "p995": 96746300.0,
+            "p999": 96746300.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///D:/projects/ai/mljs/bench/perceptron.bench.js",
+      "group": "Perceptron 8x8",
+      "name": "CPU Perceptron 8x8",
+      "baseline": true,
+      "results": [
+        {
+          "ok": {
+            "n": 26292,
+            "min": 16000.0,
+            "max": 386500.0,
+            "avg": 19026.0,
+            "p75": 17600.0,
+            "p99": 47600.0,
+            "p995": 67400.0,
+            "p999": 187900.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///D:/projects/ai/mljs/bench/perceptron.bench.js",
+      "group": "Perceptron 8x8",
+      "name": "CUDA Perceptron 8x8",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 231,
+            "min": 2011200.0,
+            "max": 5566800.0,
+            "avg": 2266886.0,
+            "p75": 2347500.0,
+            "p99": 2932500.0,
+            "p995": 2974100.0,
+            "p999": 5566800.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///D:/projects/ai/mljs/bench/perceptron.bench.js",
+      "group": "Perceptron 8x8",
+      "name": "WGPU Perceptron 8x8",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 16,
+            "min": 83050800.0,
+            "max": 95554800.0,
+            "avg": 92845132.0,
+            "p75": 93956600.0,
+            "p99": 95554800.0,
+            "p995": 95554800.0,
+            "p999": 95554800.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///D:/projects/ai/mljs/bench/perceptron.bench.js",
+      "group": "Perceptron 16x16",
+      "name": "CPU Perceptron 16x16",
+      "baseline": true,
+      "results": [
+        {
+          "ok": {
+            "n": 9270,
+            "min": 47700.0,
+            "max": 481700.0,
+            "avg": 53997.0,
+            "p75": 54000.0,
+            "p99": 126600.0,
+            "p995": 190000.0,
+            "p999": 229800.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///D:/projects/ai/mljs/bench/perceptron.bench.js",
+      "group": "Perceptron 16x16",
+      "name": "CUDA Perceptron 16x16",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 172,
+            "min": 2526900.0,
+            "max": 11686300.0,
+            "avg": 3091917.0,
+            "p75": 3278100.0,
+            "p99": 5621700.0,
+            "p995": 11686300.0,
+            "p999": 11686300.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///D:/projects/ai/mljs/bench/perceptron.bench.js",
+      "group": "Perceptron 16x16",
+      "name": "WGPU Perceptron 16x16",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 16,
+            "min": 71606100.0,
+            "max": 96846500.0,
+            "avg": 91269532.0,
+            "p75": 94065800.0,
+            "p99": 96846500.0,
+            "p995": 96846500.0,
+            "p999": 96846500.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///D:/projects/ai/mljs/bench/perceptron.bench.js",
+      "group": "Perceptron 32x32",
+      "name": "CPU Perceptron 32x32",
+      "baseline": true,
+      "results": [
+        {
+          "ok": {
+            "n": 2412,
+            "min": 176000.0,
+            "max": 1997200.0,
+            "avg": 210070.0,
+            "p75": 195700.0,
+            "p99": 559000.0,
+            "p995": 663600.0,
+            "p999": 869300.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///D:/projects/ai/mljs/bench/perceptron.bench.js",
+      "group": "Perceptron 32x32",
+      "name": "CUDA Perceptron 32x32",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 90,
+            "min": 4872800.0,
+            "max": 9471500.0,
+            "avg": 6258685.0,
+            "p75": 6423700.0,
+            "p99": 9471500.0,
+            "p995": 9471500.0,
+            "p999": 9471500.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///D:/projects/ai/mljs/bench/perceptron.bench.js",
+      "group": "Perceptron 32x32",
+      "name": "WGPU Perceptron 32x32",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 16,
+            "min": 91478000.0,
+            "max": 97674700.0,
+            "avg": 94698200.0,
+            "p75": 95838100.0,
+            "p99": 97674700.0,
+            "p995": 97674700.0,
+            "p999": 97674700.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///D:/projects/ai/mljs/bench/perceptron.bench.js",
+      "group": "Perceptron 64x64",
+      "name": "CPU Perceptron 64x64",
+      "baseline": true,
+      "results": [
+        {
+          "ok": {
+            "n": 654,
+            "min": 703400.0,
+            "max": 1544900.0,
+            "avg": 776894.0,
+            "p75": 781200.0,
+            "p99": 1185300.0,
+            "p995": 1253800.0,
+            "p999": 1544900.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///D:/projects/ai/mljs/bench/perceptron.bench.js",
+      "group": "Perceptron 64x64",
+      "name": "CUDA Perceptron 64x64",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 72,
+            "min": 7104800.0,
+            "max": 11632200.0,
+            "avg": 8137477.0,
+            "p75": 8105400.0,
+            "p99": 11632200.0,
+            "p995": 11632200.0,
+            "p999": 11632200.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///D:/projects/ai/mljs/bench/perceptron.bench.js",
+      "group": "Perceptron 64x64",
+      "name": "WGPU Perceptron 64x64",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 16,
+            "min": 93852800.0,
+            "max": 97011900.0,
+            "avg": 95083413.0,
+            "p75": 95477600.0,
+            "p99": 97011900.0,
+            "p995": 97011900.0,
+            "p999": 97011900.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///D:/projects/ai/mljs/bench/perceptron.bench.js",
+      "group": "Perceptron 128x128",
+      "name": "CPU Perceptron 128x128",
+      "baseline": true,
+      "results": [
+        {
+          "ok": {
+            "n": 152,
+            "min": 3067900.0,
+            "max": 6521000.0,
+            "avg": 3548758.0,
+            "p75": 3762900.0,
+            "p99": 4714200.0,
+            "p995": 6521000.0,
+            "p999": 6521000.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///D:/projects/ai/mljs/bench/perceptron.bench.js",
+      "group": "Perceptron 128x128",
+      "name": "CUDA Perceptron 128x128",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 35,
+            "min": 18087100.0,
+            "max": 25092300.0,
+            "avg": 20853715.0,
+            "p75": 22154200.0,
+            "p99": 25092300.0,
+            "p995": 25092300.0,
+            "p999": 25092300.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///D:/projects/ai/mljs/bench/perceptron.bench.js",
+      "group": "Perceptron 128x128",
+      "name": "WGPU Perceptron 128x128",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 16,
+            "min": 73980600.0,
+            "max": 103863900.0,
+            "avg": 94393963.0,
+            "p75": 98346200.0,
+            "p99": 103863900.0,
+            "p995": 103863900.0,
+            "p999": 103863900.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///D:/projects/ai/mljs/bench/perceptron.bench.js",
+      "group": "Perceptron 256x256",
+      "name": "CPU Perceptron 256x256",
+      "baseline": true,
+      "results": [
+        {
+          "ok": {
+            "n": 47,
+            "min": 12846600.0,
+            "max": 25916600.0,
+            "avg": 13616009.0,
+            "p75": 13649400.0,
+            "p99": 25916600.0,
+            "p995": 25916600.0,
+            "p999": 25916600.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///D:/projects/ai/mljs/bench/perceptron.bench.js",
+      "group": "Perceptron 256x256",
+      "name": "CUDA Perceptron 256x256",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 19,
+            "min": 52327200.0,
+            "max": 60674600.0,
+            "avg": 56219753.0,
+            "p75": 58018800.0,
+            "p99": 60674600.0,
+            "p995": 60674600.0,
+            "p999": 60674600.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///D:/projects/ai/mljs/bench/perceptron.bench.js",
+      "group": "Perceptron 256x256",
+      "name": "WGPU Perceptron 256x256",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 15,
+            "min": 95996600.0,
+            "max": 107802200.0,
+            "avg": 103879707.0,
+            "p75": 104950100.0,
+            "p99": 107802200.0,
+            "p995": 107802200.0,
+            "p999": 107802200.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///D:/projects/ai/mljs/bench/perceptron.bench.js",
+      "group": "Perceptron 512x512",
+      "name": "CPU Perceptron 512x512",
+      "baseline": true,
+      "results": [
+        {
+          "ok": {
+            "n": 19,
+            "min": 53172400.0,
+            "max": 81382200.0,
+            "avg": 57305200.0,
+            "p75": 58487100.0,
+            "p99": 81382200.0,
+            "p995": 81382200.0,
+            "p999": 81382200.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///D:/projects/ai/mljs/bench/perceptron.bench.js",
+      "group": "Perceptron 512x512",
+      "name": "CUDA Perceptron 512x512",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 13,
+            "min": 166741300.0,
+            "max": 194996100.0,
+            "avg": 180236500.0,
+            "p75": 185585600.0,
+            "p99": 194996100.0,
+            "p995": 194996100.0,
+            "p999": 194996100.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///D:/projects/ai/mljs/bench/perceptron.bench.js",
+      "group": "Perceptron 512x512",
+      "name": "WGPU Perceptron 512x512",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 15,
+            "min": 100504900.0,
+            "max": 123441600.0,
+            "avg": 113246880.0,
+            "p75": 115358100.0,
+            "p99": 123441600.0,
+            "p995": 123441600.0,
+            "p999": 123441600.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///D:/projects/ai/mljs/bench/perceptron.bench.js",
+      "group": "Perceptron 1024x1024",
+      "name": "CPU Perceptron 1024x1024",
+      "baseline": true,
+      "results": [
+        {
+          "ok": {
+            "n": 13,
+            "min": 219454000.0,
+            "max": 263994700.0,
+            "avg": 233370662.0,
+            "p75": 241428800.0,
+            "p99": 263994700.0,
+            "p995": 263994700.0,
+            "p999": 263994700.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///D:/projects/ai/mljs/bench/perceptron.bench.js",
+      "group": "Perceptron 1024x1024",
+      "name": "CUDA Perceptron 1024x1024",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 11,
+            "min": 561962900.0,
+            "max": 628420600.0,
+            "avg": 587863491.0,
+            "p75": 600604200.0,
+            "p99": 628420600.0,
+            "p995": 628420600.0,
+            "p999": 628420600.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///D:/projects/ai/mljs/bench/perceptron.bench.js",
+      "group": "Perceptron 1024x1024",
+      "name": "WGPU Perceptron 1024x1024",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 13,
+            "min": 218476700.0,
+            "max": 256138700.0,
+            "avg": 236748885.0,
+            "p75": 241899300.0,
+            "p99": 256138700.0,
+            "p995": 256138700.0,
+            "p999": 256138700.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///D:/projects/ai/mljs/bench/perceptron.bench.js",
+      "group": "Perceptron 2048x2048",
+      "name": "CPU Perceptron 2048x2048",
+      "baseline": true,
+      "results": [
+        {
+          "ok": {
+            "n": 11,
+            "min": 929082400.0,
+            "max": 992706700.0,
+            "avg": 961792955.0,
+            "p75": 976563800.0,
+            "p99": 992706700.0,
+            "p995": 992706700.0,
+            "p999": 992706700.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///D:/projects/ai/mljs/bench/perceptron.bench.js",
+      "group": "Perceptron 2048x2048",
+      "name": "CUDA Perceptron 2048x2048",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 11,
+            "min": 2102379500.0,
+            "max": 2394740300.0,
+            "avg": 2168863555.0,
+            "p75": 2174840200.0,
+            "p99": 2394740300.0,
+            "p995": 2394740300.0,
+            "p999": 2394740300.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///D:/projects/ai/mljs/bench/perceptron.bench.js",
+      "group": "Perceptron 2048x2048",
+      "name": "WGPU Perceptron 2048x2048",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 11,
+            "min": 804787600.0,
+            "max": 856374600.0,
+            "avg": 828673364.0,
+            "p75": 843684500.0,
+            "p99": 856374600.0,
+            "p995": 856374600.0,
+            "p999": 856374600.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    }
+  ]
+}
