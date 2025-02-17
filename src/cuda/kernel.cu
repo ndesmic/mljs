@@ -2,32 +2,37 @@
 #include "kernel.h"
 #include "stdio.h"
 
-__device__ int* insertAtIndex(const int* array, const int length, const int index, const int value){
-    int* outArray = (int *)malloc((length + 1) * sizeof(int));
+__device__ void insertAtIndex(const int sourcePtr, const int length, const int destinationPtr, const int indexToInsert, const int value, char *mem)
+{
     int sourceIndex = 0;
     int destinationIndex = 0;
-    while(destinationIndex < length + 1){
-        if(destinationIndex != index){
-            outArray[destinationIndex] = array[sourceIndex];
+
+    while (destinationIndex < length + 1)
+    {
+        if (destinationIndex != indexToInsert)
+        {
+            mem[destinationPtr + destinationIndex] = mem[sourcePtr + sourceIndex];
             sourceIndex++;
             destinationIndex++;
-        } else {
-            outArray[destinationIndex] = value;
+        }
+        else
+        {
+            mem[destinationPtr + destinationIndex] = value;
             destinationIndex++;
         }
     }
-    return outArray;
 }
-__device__ int *removeAtIndex(const int *array, const int length, const int index)
+
+__device__ void removeAtIndex(const int sourcePtr, const int length, const int destinationPtr, const int indexToRemove, char *mem)
 {
-    int *outArray = (int *)malloc((length - 1) * sizeof(int));
     int sourceIndex = 0;
     int destinationIndex = 0;
+
     while (destinationIndex < length - 1)
     {
-        if (sourceIndex != index)
+        if (sourceIndex != indexToRemove)
         {
-            outArray[destinationIndex] = array[sourceIndex];
+            mem[destinationPtr + destinationIndex] = mem[sourcePtr + sourceIndex];
             sourceIndex++;
             destinationIndex++;
         }
@@ -36,36 +41,36 @@ __device__ int *removeAtIndex(const int *array, const int length, const int inde
             sourceIndex++;
         }
     }
-    return outArray;
-}
-//shape is column major
-__device__ int* getDimensionalIndices(int flatIndex, const int shape[], const int shapeSize)
-{
-    int* indices = (int*)malloc(sizeof(shapeSize));
-    for(int i = 0; i < shapeSize; i++){
-        indices[i] = flatIndex % shape[i];
-        flatIndex = flatIndex / shape[i];
-    }
-    return indices;
 }
 
-//shape and dimensionalIndex are column major
-__device__ int getFlatIndex(const int dimensionalIndex[], const int shape[], const int shapeSize)
+__device__ void getDimensionalIndices(int flatIndex, const int shapePtr, const int shapeSize, const int destinationPtr, char *mem)
+{
+    int currentIndex = flatIndex;
+
+    for (int i = 0; i < shapeSize; i++)
+    {
+        mem[destinationPtr + i] = currentIndex % mem[shapePtr + i];
+        currentIndex = currentIndex / mem[shapePtr + i];
+    }
+}
+
+__device__ int getFlatIndex(const int dimensionalIndexPtr, const int shapePtr, const int shapeSize, char *mem)
 {
     int index = 0;
     for (int i = 0; i < shapeSize; i++)
     {
-        index *= shape[shapeSize - 1 - i];
-        index += dimensionalIndex[shapeSize - 1 - i];
+        index *= mem[shapePtr + shapeSize - 1 - i];
+        index += mem[dimensionalIndexPtr + shapeSize - 1 - i];
     }
     return index;
 }
-__global__ void addKernel(const int size, const float* valuesA, const float* valuesB, float* output)
+
+__global__ void addKernel(const int size, const float *valuesA, const float *valuesB, float *output)
 {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (idx < size)
-    {        
+    {
         output[idx] = valuesA[idx] + valuesB[idx];
     }
 }
@@ -107,7 +112,7 @@ __global__ void mulKernel(const int size, const float *valuesA, const float *val
         output[idx] = valuesA[idx] * valuesB[idx];
     }
 }
-__global__ void mulBackpropKernel(const int size, float *gradA, float *gradB, const float *gradResult, const float *valuesA, const float *valuesB )
+__global__ void mulBackpropKernel(const int size, float *gradA, float *gradB, const float *gradResult, const float *valuesA, const float *valuesB)
 {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -209,7 +214,7 @@ __global__ void tanhBackpropKernel(const int size, float *grad, const float *gra
         grad[idx] += (1 - pow(tanh(values[idx]), 2)) * gradResult[idx];
     }
 }
-__global__ void sumKernel(const int* shape, const int shapeSize, const int dimToReduce, const float* values, float* output)
+__global__ void sumKernel(const int *shape, const int shapeSize, const int dimToReduce, const float *values, float *output, char *mem)
 {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -223,22 +228,36 @@ __global__ void sumKernel(const int* shape, const int shapeSize, const int dimTo
     }
     if (idx < newSize)
     {
-        int *newShape = removeAtIndex(shape, shapeSize, dimToReduce);
-        int *partialDimIndex = getDimensionalIndices(idx, newShape, shapeSize - 1);
+        size_t basePtr = idx * ((shapeSize * 4) - 2); //manual calc :/
+        size_t memPtr = basePtr;
+        size_t shapePtr = basePtr;
 
-        for(int i = 0; i < shape[dimToReduce]; i++){
-            int* dimIndex = insertAtIndex(partialDimIndex, shapeSize - 1, dimToReduce, i);
-            int flatIdx = getFlatIndex(dimIndex, shape, shapeSize);
-            output[idx] += values[flatIdx];
-            free(dimIndex);
+        for (int i = 0; i < shapeSize; i++)
+        {
+            mem[memPtr] = shape[i];
+            memPtr++;
         }
 
-        free(newShape);
-        free(partialDimIndex);
+        size_t newShapePtr = memPtr;
+        removeAtIndex(shapePtr, shapeSize, newShapePtr, dimToReduce, mem);
+        memPtr += shapeSize - 1;
+
+        size_t partialDimIndexPtr = memPtr;
+        getDimensionalIndices(idx, newShapePtr, shapeSize - 1, partialDimIndexPtr, mem);
+        memPtr += shapeSize - 1;
+
+        for (int i = 0; i < shape[dimToReduce]; i++)
+        {
+            size_t dimIndexPtr = memPtr;
+            insertAtIndex(partialDimIndexPtr, shapeSize - 1, dimIndexPtr, dimToReduce, i, mem);
+
+            size_t flatIdx = getFlatIndex(dimIndexPtr, shapePtr, shapeSize, mem);
+            output[idx] += values[flatIdx];
+        }
     }
 }
 
-__global__ void sumBackpropKernel(const int *shape, const int shapeSize, const int dimToReduce, float *grad, const float *gradResult)
+__global__ void sumBackpropKernel(const int *shape, const int shapeSize, const int dimToReduce, float *grad, const float *gradResult, char* mem)
 {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -250,20 +269,35 @@ __global__ void sumBackpropKernel(const int *shape, const int shapeSize, const i
 
     if (idx < inSize)
     {
-        int *outShape = removeAtIndex(shape, shapeSize, dimToReduce);
-        int *inDimIndex = getDimensionalIndices(idx, shape, shapeSize);
-        int *outDimIndex = removeAtIndex(inDimIndex, shapeSize, dimToReduce);
-        int outputFlatIdx = getFlatIndex(outDimIndex, outShape, shapeSize - 1);
+        size_t basePtr = idx * ((shapeSize * 4) - 2); //manual calc :/
+        size_t memPtr = basePtr;
+        size_t shapePtr = basePtr;
+
+        for(int i = 0; i < shapeSize; i++){
+            mem[memPtr] = shape[i];
+            memPtr++;
+        }
+
+        size_t outShapePtr = memPtr;
+        removeAtIndex(shapePtr, shapeSize, outShapePtr, dimToReduce, mem);
+        memPtr += shapeSize - 1;
+
+        size_t inDimIndexPtr = memPtr;
+        getDimensionalIndices(idx, shapePtr, shapeSize, inDimIndexPtr, mem);
+        memPtr += shapeSize;
+
+        size_t outDimIndexPtr = memPtr;
+        removeAtIndex(inDimIndexPtr, shapeSize, outDimIndexPtr, dimToReduce, mem);
+        memPtr += shapeSize - 1;
+
+
+        size_t outputFlatIdx = getFlatIndex(outDimIndexPtr, outShapePtr, shapeSize - 1, mem);
 
         grad[idx] += gradResult[outputFlatIdx];
-
-        free(outDimIndex);
-        free(outShape);
-        free(inDimIndex);
     }
 }
 
-//Binary Ops
+// Binary Ops
 
 float *add_op(const int size, const float *valuesA, const float *valuesB)
 {
@@ -582,7 +616,7 @@ void divBackprop_op(const int size, float *gradA, float *gradB, const float *gra
     if (gradA == gradB)
     { // if same reference then we need to add them
 
-        float *ggA = (float*)malloc(size * sizeof(float));
+        float *ggA = (float *)malloc(size * sizeof(float));
         float *ggB = (float *)malloc(size * sizeof(float));
         cudaMemcpy(ggA, gradA_d, size * sizeof(float), cudaMemcpyDeviceToHost);
         cudaMemcpy(ggB, gradB_d, size * sizeof(float), cudaMemcpyDeviceToHost);
@@ -706,8 +740,9 @@ void powBackprop_op(const int size, float *gradA, float *gradB, const float *gra
     cudaFree(valuesB_d);
 }
 
-//Unary Ops
-float* neg_op(const int size, const float *values){
+// Unary Ops
+float *neg_op(const int size, const float *values)
+{
     int BLOCK_SIZE = 32;
     int GRID_SIZE = (int)ceil(size / (float)BLOCK_SIZE);
 
@@ -889,9 +924,9 @@ void tanhBackprop_op(const int size, float *grad, const float *gradResult, const
     cudaFree(values_d);
 }
 
-//Reduction Ops
+// Reduction Ops
 
-float* sum_op(const int* shape, const int shapeSize, const int dimToReduce, const float* values)
+float *sum_op(const int *shape, const int shapeSize, const int dimToReduce, const float *values)
 {
     int BLOCK_SIZE = 32;
 
@@ -904,20 +939,25 @@ float* sum_op(const int* shape, const int shapeSize, const int dimToReduce, cons
 
     int GRID_SIZE = (int)ceil(size / (float)BLOCK_SIZE);
 
-    float* output = new float[outSize];
+    float *output = new float[outSize];
 
-    float* values_d;
-    float* output_d;
-    int* shape_d;
+    float *values_d;
+    float *output_d;
+    int *shape_d;
+    char*mem_d;
 
-    cudaMalloc((void**)&values_d, size * sizeof(float));
-    cudaMalloc((void**)&output_d, outSize * sizeof(float));
+    cudaMalloc((void **)&values_d, size * sizeof(float));
+    cudaMalloc((void **)&output_d, outSize * sizeof(float));
     cudaMalloc((void **)&shape_d, shapeSize * sizeof(int));
+
+    // memory areana
+    int threadMemSize = ((shapeSize * 4) - 2) * 4;
+    cudaMalloc((void **)&mem_d, threadMemSize * outSize);
 
     cudaMemcpy(values_d, values, size * sizeof(float), cudaMemcpyHostToDevice);
     cudaMemcpy(shape_d, shape, shapeSize * sizeof(int), cudaMemcpyHostToDevice);
 
-    sumKernel<<<GRID_SIZE, BLOCK_SIZE >>> (shape_d, shapeSize, dimToReduce, values_d, output_d);
+    sumKernel<<<GRID_SIZE, BLOCK_SIZE>>>(shape_d, shapeSize, dimToReduce, values_d, output_d, mem_d);
     cudaDeviceSynchronize();
     cudaError_t err = cudaGetLastError();
     if (err != cudaSuccess)
@@ -930,6 +970,7 @@ float* sum_op(const int* shape, const int shapeSize, const int dimToReduce, cons
     cudaFree(values_d);
     cudaFree(output_d);
     cudaFree(shape_d);
+    cudaFree(mem_d);
 
     return output;
 }
@@ -950,16 +991,21 @@ void sumBackprop_op(const int *shape, const int shapeSize, const int dimToReduce
     float *grad_d;
     float *gradResult_d;
     int *shape_d;
+    char *mem_d;
 
     cudaMalloc((void **)&grad_d, size * sizeof(float));
     cudaMalloc((void **)&gradResult_d, size * sizeof(float));
     cudaMalloc((void **)&shape_d, shapeSize * sizeof(int));
 
+    // memory areana
+    int threadMemSize = ((shapeSize * 4) - 2) * 4;
+    cudaMalloc((void **)&mem_d, threadMemSize * outSize);
+
     cudaMemcpy(grad_d, grad, size * sizeof(float), cudaMemcpyHostToDevice);
     cudaMemcpy(gradResult_d, gradResult, outSize * sizeof(float), cudaMemcpyHostToDevice);
     cudaMemcpy(shape_d, shape, shapeSize * sizeof(int), cudaMemcpyHostToDevice);
 
-    sumBackpropKernel<<<GRID_SIZE, BLOCK_SIZE>>>(shape_d, shapeSize, dimToReduce, grad_d, gradResult_d);
+    sumBackpropKernel<<<GRID_SIZE, BLOCK_SIZE>>>(shape_d, shapeSize, dimToReduce, grad_d, gradResult_d, mem_d);
     cudaDeviceSynchronize();
     cudaError_t err = cudaGetLastError();
     if (err != cudaSuccess)
@@ -972,4 +1018,5 @@ void sumBackprop_op(const int *shape, const int shapeSize, const int dimToReduce
     cudaFree(grad_d);
     cudaFree(gradResult_d);
     cudaFree(shape_d);
+    cudaFree(mem_d);
 }

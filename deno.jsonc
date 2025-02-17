@@ -5,6 +5,12 @@
     "test:cuda": "deno task build && deno test --allow-ffi ./test/cuda-tensor.test.js",
     "test:wgpu": "deno test ./test/wgpu-tensor.test.js",
     "test:cpu": "deno test ./test/tensor.test.js",
+    "bench:perceptron": "deno bench --allow-ffi ./bench/perceptron.bench.js",
+    "bench:add": "deno bench --allow-ffi ./bench/add.bench.js",
+    "bench:report": "deno bench --allow-ffi --json ./bench/perceptron.bench.js > bench.report.json",
+    "prof:cuda:perceptron" : "deno run --inspect-brk --allow-ffi ./prof/perceptron.cuda.prof.js",
+    "prof:cpu:perceptron" : "deno run --inspect-brk --allow-ffi ./prof/perceptron.cpu.prof.js",
+    "prof:wgpu:perceptron" : "deno run --inspect-brk --allow-ffi ./prof/perceptron.wgpu.prof.js",
     "webtest": "deno run --allow-net --allow-read jsr:@std/http/file-server"
   },
   "imports": {
